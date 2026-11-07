@@ -1,0 +1,2638 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Мега Прыгун</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;-webkit-touch-callout:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#0b0f1a;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+  #game{position:relative;width:100%;height:100%;max-width:960px;max-height:640px;background:linear-gradient(180deg,#1a2540,#0d1220);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+  canvas{display:block;width:100%;height:100%;touch-action:none}
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;background:rgba(8,12,22,.92);backdrop-filter:blur(6px);z-index:5;padding:16px;overflow-y:auto}
+  .screen.hidden{display:none}
+  h1{font-size:clamp(24px,4.5vw,36px);color:#ffd93b;text-shadow:0 0 20px rgba(255,217,59,.5);letter-spacing:2px;margin-bottom:2px;text-align:center}
+  h2{color:#9fc3ff;font-size:20px;margin-bottom:4px;text-align:center}
+  .btn{font:inherit;font-weight:700;cursor:pointer;min-width:180px;padding:11px 20px;font-size:15px;color:#fff;border:none;border-radius:12px;background:linear-gradient(180deg,#3d7bff,#2456c8);box-shadow:0 6px 18px rgba(61,123,255,.45);transition:transform .1s,filter .15s}
+  .btn:hover{filter:brightness(1.12)}
+  .btn:active{transform:translateY(2px)}
+  .btn.gold{background:linear-gradient(180deg,#ffc93c,#e8a200);color:#3a2a00;box-shadow:0 6px 18px rgba(255,201,60,.4)}
+  .btn.green{background:linear-gradient(180deg,#4cd964,#2ea043);box-shadow:0 6px 18px rgba(76,217,100,.4)}
+  .btn.gray{background:linear-gradient(180deg,#4a5a78,#33415a);box-shadow:0 6px 18px rgba(0,0,0,.3)}
+  .btn.purple{background:linear-gradient(180deg,#a86bff,#7c3aed);box-shadow:0 6px 18px rgba(168,107,255,.4)}
+  .btn.orange{background:linear-gradient(180deg,#ff9a3c,#e8730e);box-shadow:0 6px 18px rgba(255,154,60,.4)}
+  .btn.teal{background:linear-gradient(180deg,#2ee8c8,#0a9a8a);color:#052a26;box-shadow:0 6px 18px rgba(46,232,200,.4)}
+  .btn.red{background:linear-gradient(180deg,#ff5c5c,#c03030);box-shadow:0 6px 18px rgba(255,92,92,.4)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;filter:grayscale(.4)}
+  .btn.small{min-width:0;padding:7px 14px;font-size:12px;border-radius:8px}
+  .sub{color:#7f93b8;font-size:12px;text-align:center;max-width:460px;line-height:1.5}
+  .coins-line{color:#ffd93b;font-weight:700;font-size:16px}
+  .back{position:absolute;top:12px;left:12px;min-width:0;padding:8px 14px;font-size:12px;z-index:10}
+  .player-level{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid #2a3b5c;border-radius:12px;padding:8px 14px;width:min(460px,100%)}
+  .lvl-badge{width:40px;height:40px;border-radius:50%;background:linear-gradient(160deg,#ffd93b,#e8a200);color:#3a2a00;font-weight:900;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 16px rgba(255,201,60,.5)}
+  .lvl-info{flex:1;min-width:0}
+  .lvl-title{color:#cfe0ff;font-weight:700;font-size:13px}
+  .lvl-xp-bar{height:7px;background:#1a2540;border-radius:4px;overflow:hidden;margin-top:4px}
+  .lvl-xp-fill{height:100%;background:linear-gradient(90deg,#3d7bff,#9fc3ff);border-radius:4px;transition:width .4s}
+  .lvl-xp-text{font-size:10px;color:#7f93b8;margin-top:2px}
+  .rank-badge{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid #2a3b5c;border-radius:12px;padding:8px 14px;width:min(460px,100%)}
+  .rank-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:linear-gradient(160deg,#4a5a78,#2a3a58)}
+  .rank-info{flex:1;min-width:0}
+  .rank-title{color:#cfe0ff;font-weight:700;font-size:13px}
+  .rank-bar{height:7px;background:#1a2540;border-radius:4px;overflow:hidden;margin-top:4px}
+  .rank-fill{height:100%;border-radius:4px;transition:width .4s;background:linear-gradient(90deg,#3d7bff,#9fc3ff)}
+  .rank-text{font-size:10px;color:#7f93b8;margin-top:2px}
+  .shop-grid,.skins-grid,.biome-grid,.case-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;width:min(760px,100%);margin-top:4px}
+  .card{background:rgba(255,255,255,.05);border:1px solid #2a3b5c;border-radius:14px;padding:14px;text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center;position:relative}
+  .card .icon{font-size:30px;line-height:1}
+  .card .title{color:#cfe0ff;font-weight:700;font-size:15px}
+  .card .desc{color:#7f93b8;font-size:11px;line-height:1.4;min-height:32px}
+  .card .price{color:#ffd93b;font-weight:700;font-size:13px}
+  .card.owned{border-color:#2ea043;background:rgba(46,160,67,.08)}
+  .card.owned::after{content:'✓ Куплено';position:absolute;top:8px;right:8px;font-size:10px;font-weight:700;color:#4cd964;background:rgba(46,160,67,.15);padding:2px 7px;border-radius:20px}
+  .card.locked{opacity:.5}
+  .card .btn{min-width:0;width:100%;padding:8px;font-size:12px;margin-top:auto}
+  .case-card{border-radius:16px;padding:18px 12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:7px;position:relative;overflow:hidden;cursor:pointer;border:2px solid transparent}
+  .case-card .case-icon{font-size:40px}
+  .case-card .case-title{font-weight:800;font-size:16px}
+  .case-card .case-desc{font-size:10px;opacity:.85;min-height:26px;line-height:1.4}
+  .case-card .case-price{font-weight:800;font-size:13px;background:rgba(0,0,0,.35);padding:4px 10px;border-radius:20px;color:#ffd93b}
+  .case-card .btn{min-width:0;width:100%;padding:8px;font-size:12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.2);box-shadow:none}
+  .case-card.common{background:linear-gradient(160deg,#3a4a6a,#253350)}
+  .case-card.rare{background:linear-gradient(160deg,#2a5a9a,#1a3a6a)}
+  .case-card.epic{background:linear-gradient(160deg,#5a2a9a,#3a1a6a)}
+  .case-card.legendary{background:linear-gradient(160deg,#9a5a1a,#6a3a0a);box-shadow:0 0 30px rgba(255,193,60,.35)}
+  .case-modal{position:absolute;inset:0;background:rgba(4,7,14,.94);backdrop-filter:blur(8px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:15;padding:20px}
+  .case-modal.hidden{display:none}
+  .reel-wrap{width:min(560px,100%);height:110px;background:#101828;border:2px solid #3d7bff;border-radius:14px;overflow:hidden;position:relative;box-shadow:0 0 40px rgba(61,123,255,.35)}
+  .reel{display:flex;align-items:center;height:100%;will-change:transform}
+  .reel-item{flex:0 0 110px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-weight:700;border-right:1px solid rgba(255,255,255,.06)}
+  .reel-item .ri-icon{font-size:34px}
+  .reel-item .ri-name{font-size:10px;opacity:.8}
+  .reel-item.rarity-common{background:#26324a;color:#cfe0ff}
+  .reel-item.rarity-rare{background:#1e3a6a;color:#9fc3ff}
+  .reel-item.rarity-epic{background:#3a1a6a;color:#c4a4ff}
+  .reel-item.rarity-legendary{background:#6a3a0a;color:#ffd93b}
+  .reel-pointer{position:absolute;left:50%;top:-2px;bottom:-2px;width:3px;background:#ffd93b;box-shadow:0 0 14px #ffd93b;transform:translateX(-50%);z-index:2}
+  .case-result{text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px}
+  .case-result .big-icon{font-size:60px}
+  .case-result .res-name{font-size:22px;font-weight:800}
+  .case-result .res-rarity{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+  .case-result .res-dupe{font-size:12px;color:#ffd93b;margin-top:3px}
+  .skin-card{background:rgba(255,255,255,.04);border:2px solid #2a3b5c;border-radius:14px;padding:10px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;position:relative}
+  .skin-card.selected{border-color:#ffd93b;box-shadow:0 0 20px rgba(255,217,59,.4)}
+  .skin-card.locked{opacity:.45;cursor:not-allowed;filter:grayscale(.6)}
+  .skin-card .skin-avatar{width:46px;height:60px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px}
+  .skin-card .skin-name{font-weight:700;font-size:11px;color:#cfe0ff}
+  .skin-card .skin-rarity{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .setting-row{display:flex;align-items:center;justify-content:space-between;width:min(460px,100%);background:rgba(255,255,255,.05);border:1px solid #2a3b5c;border-radius:12px;padding:10px 14px;gap:10px}
+  .setting-row span{color:#cfe0ff;font-size:13px;font-weight:600}
+  .setting-row input{background:#1a2540;border:1px solid #2a3b5c;border-radius:8px;padding:6px 10px;color:#cfe0ff;font:inherit;font-size:12px;width:140px;outline:none;text-align:center}
+  .setting-row input:focus{border-color:#3d7bff}
+  .toggle{display:flex;background:#1a2540;border-radius:10px;padding:4px;gap:4px;flex-shrink:0}
+  .toggle button{font:inherit;font-size:11px;font-weight:700;cursor:pointer;padding:6px 10px;border:none;border-radius:7px;background:transparent;color:#7f93b8}
+  .toggle button.active{background:#3d7bff;color:#fff}
+  #hud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;z-index:3;pointer-events:none;font-weight:700;font-size:15px}
+  #hud .chip{background:rgba(8,12,22,.6);border:1px solid #2a3b5c;border-radius:10px;padding:6px 10px;color:#ffd93b}
+  #hud .chip.blue{color:#9fc3ff}
+  #hud .chip.green{color:#4cd964}
+  #hud .chip.red{color:#ff5c5c}
+  #hud .chip.purple{color:#a86bff}
+  #pauseBtn{pointer-events:auto;background:rgba(8,12,22,.6);border:1px solid #2a3b5c;border-radius:10px;padding:6px 12px;color:#cfe0ff;font:inherit;font-weight:700;cursor:pointer}
+  #hud.hidden{display:none}
+  .toast{position:absolute;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:rgba(8,12,22,.94);border:1px solid #3d7bff;color:#cfe0ff;padding:10px 18px;border-radius:10px;font-weight:600;opacity:0;transition:opacity .25s,transform .25s;z-index:20;pointer-events:none;text-align:center;max-width:90%;font-size:13px}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .daily-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;width:min(660px,100%);margin:5px 0}
+  @media(max-width:600px){.daily-grid{grid-template-columns:repeat(4,1fr)}}
+  .daily-day{background:rgba(255,255,255,.05);border:2px solid #2a3b5c;border-radius:10px;padding:7px 3px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative}
+  .daily-day .d-label{font-size:9px;color:#7f93b8;font-weight:700}
+  .daily-day .d-icon{font-size:20px;line-height:1}
+  .daily-day .d-reward{font-size:10px;font-weight:800;color:#ffd93b}
+  .daily-day.claimed{border-color:#2ea043;background:rgba(46,160,67,.12)}
+  .daily-day.today{border-color:#ffd93b;background:rgba(255,217,59,.1);box-shadow:0 0 18px rgba(255,217,59,.35)}
+  .mission-list{display:flex;flex-direction:column;gap:7px;width:min(600px,100%);margin-top:4px}
+  .mission-item{background:rgba(255,255,255,.05);border:1px solid #2a3b5c;border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px}
+  .mission-item.done{border-color:#2ea043;background:rgba(46,160,67,.08)}
+  .mission-item.claimed{opacity:.6}
+  .mission-item .m-icon{font-size:24px;flex-shrink:0}
+  .mission-item .m-body{flex:1;min-width:0}
+  .mission-item .m-title{color:#cfe0ff;font-weight:700;font-size:13px}
+  .mission-item .m-desc{color:#7f93b8;font-size:10px;line-height:1.4}
+  .mission-item .m-progress-bar{height:5px;background:#1a2540;border-radius:3px;overflow:hidden;margin-top:4px}
+  .mission-item .m-progress-fill{height:100%;background:linear-gradient(90deg,#3d7bff,#9fc3ff);border-radius:3px}
+  .mission-item.done .m-progress-fill{background:linear-gradient(90deg,#2ea043,#4cd964)}
+  .mission-item .m-reward{font-weight:800;color:#ffd93b;font-size:13px;flex-shrink:0;min-width:44px;text-align:right}
+  .mission-item .m-btn{flex-shrink:0;padding:6px 10px;font-size:11px;min-width:0}
+  .badge{position:absolute;top:-7px;right:-7px;background:#ff5c5c;color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 5px;animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+  .menu-btn-wrap{position:relative;display:inline-block}
+  .biome-card{border-radius:14px;overflow:hidden;border:2px solid #2a3b5c;background:#101828;cursor:pointer;position:relative;display:flex;flex-direction:column}
+  .biome-card.selected{border-color:#ffd93b;box-shadow:0 0 22px rgba(255,217,59,.4)}
+  .biome-card.locked{opacity:.55}
+  .biome-preview{height:64px;position:relative;overflow:hidden}
+  .biome-preview .bp-platform{position:absolute;height:8px;border-radius:3px;bottom:14px}
+  .biome-preview .bp-coin{position:absolute;width:12px;height:12px;border-radius:50%;bottom:32px}
+  .biome-info{padding:7px 9px 9px;display:flex;flex-direction:column;gap:4px;flex:1}
+  .biome-name{color:#cfe0ff;font-weight:700;font-size:12px}
+  .biome-desc{color:#7f93b8;font-size:10px;line-height:1.3;min-height:22px}
+  .biome-bottom{display:flex;align-items:center;justify-content:space-between;gap:5px;margin-top:auto}
+  .biome-price{color:#ffd93b;font-weight:800;font-size:11px}
+  .biome-price.free{color:#4cd964}
+  .biome-card .btn{min-width:0;padding:5px 9px;font-size:10px;border-radius:7px}
+  .btn-test{background:linear-gradient(180deg,#2ee8c8,#0a9a8a)!important;color:#052a26!important}
+  .wheel-wrap{position:relative;width:240px;height:240px;margin:4px auto}
+  .wheel-canvas{width:100%;height:100%;display:block}
+  .wheel-pointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-size:24px;z-index:3}
+  .wheel-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;background:linear-gradient(160deg,#ffd93b,#e8a200);border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;box-shadow:0 0 20px rgba(255,201,60,.6);z-index:4}
+  .wheel-center.disabled{filter:grayscale(.7);cursor:not-allowed}
+  .leaderboard{display:flex;flex-direction:column;gap:5px;width:min(500px,100%);margin-top:4px}
+  .lb-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid #2a3b5c;border-radius:10px;padding:8px 12px}
+  .lb-row.you{border-color:#ffd93b;background:rgba(255,217,59,.08)}
+  .lb-row.top1{background:linear-gradient(90deg,rgba(255,193,60,.18),rgba(255,193,60,.05));border-color:#ffd93b}
+  .lb-row.top2{background:rgba(200,200,220,.1);border-color:#c0c8d8}
+  .lb-row.top3{background:rgba(200,120,60,.12);border-color:#cd7f32}
+  .lb-rank{font-weight:900;font-size:15px;color:#7f93b8;min-width:28px}
+  .lb-name{flex:1;color:#cfe0ff;font-weight:700;font-size:13px}
+  .lb-row.you .lb-name{color:#ffd93b}
+  .lb-score{color:#9fc3ff;font-weight:800;font-size:13px}
+  .tutorial-overlay{position:absolute;inset:0;background:rgba(4,7,14,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:30;padding:24px;text-align:center}
+  .tutorial-overlay.hidden{display:none}
+  .tutorial-overlay .tut-icon{font-size:60px}
+  .tutorial-overlay h2{font-size:24px;color:#ffd93b}
+  .tutorial-overlay p{color:#cfe0ff;font-size:15px;max-width:400px;line-height:1.6}
+  .tut-dots{display:flex;gap:8px}
+  .tut-dot{width:10px;height:10px;border-radius:50%;background:#2a3b5c}
+  .tut-dot.active{background:#ffd93b}
+  .xp-popup{position:absolute;pointer-events:none;font-weight:900;font-size:20px;color:#ffd93b;text-shadow:0 2px 8px rgba(0,0,0,.7);z-index:4;animation:xpFloat 1s ease-out forwards}
+  @keyframes xpFloat{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-50px) scale(1.3)}}
+  .season-banner{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,rgba(168,107,255,.25),rgba(255,154,60,.2));border:1px solid #a86bff;border-radius:12px;padding:8px 14px;width:min(460px,100%);cursor:pointer}
+  .season-banner .sb-icon{font-size:26px}
+  .season-banner .sb-text{flex:1;min-width:0}
+  .season-banner .sb-title{color:#ffd93b;font-weight:800;font-size:13px}
+  .season-banner .sb-desc{color:#cfe0ff;font-size:10px}
+  .season-banner .sb-timer{color:#ff9a3c;font-weight:700;font-size:10px;white-space:nowrap}
+  .collection-progress{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid #2a3b5c;border-radius:12px;padding:8px 14px;width:min(460px,100%)}
+  .collection-progress .cp-icon{font-size:22px}
+  .collection-progress .cp-info{flex:1}
+  .collection-progress .cp-title{color:#cfe0ff;font-weight:700;font-size:12px}
+  .collection-progress .cp-bar{height:6px;background:#1a2540;border-radius:3px;overflow:hidden;margin-top:4px}
+  .collection-progress .cp-fill{height:100%;background:linear-gradient(90deg,#4cd964,#9fc3ff);border-radius:3px}
+  .collection-progress .cp-text{font-size:10px;color:#7f93b8;margin-top:2px}
+  .share-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .record-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(8,12,22,.85);border:2px solid #ffd93b;border-radius:12px;padding:14px 24px;color:#ffd93b;font-weight:800;font-size:18px;text-align:center;z-index:6;pointer-events:none;opacity:0;transition:opacity .3s}
+  .record-hint.show{opacity:1}
+  .npc-line{display:flex;align-items:center;gap:10px;background:rgba(168,107,255,.12);border:1px solid #7c3aed;border-radius:12px;padding:8px 14px;width:min(500px,100%);margin-bottom:4px}
+  .npc-line .npc-avatar{font-size:28px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#c4a4ff,#7c3aed);border-radius:50%;flex-shrink:0}
+  .npc-line .npc-text{flex:1;color:#c4a4ff;font-size:12px;font-style:italic}
+  .race-hud{position:absolute;top:54px;left:10px;background:rgba(8,12,22,.75);border:1px solid #2a3b5c;border-radius:12px;padding:8px 10px;z-index:3;display:flex;flex-direction:column;gap:4px;font-size:11px;min-width:160px;pointer-events:none}
+  .race-hud.hidden{display:none}
+  .race-hud .rh-title{color:#ffd93b;font-weight:800;font-size:10px;letter-spacing:1px;text-transform:uppercase}
+  .race-hud .rh-row{display:flex;align-items:center;gap:6px;padding:2px 0}
+  .race-hud .rh-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  .race-hud .rh-name{flex:1;color:#cfe0ff;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .race-hud .rh-row.you .rh-name{color:#ffd93b}
+  .race-hud .rh-score{color:#9fc3ff;font-weight:800}
+  .race-timer{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(8,12,22,.8);border:2px solid #ff9a3c;border-radius:12px;padding:6px 18px;color:#ff9a3c;font-weight:900;font-size:20px;z-index:3;pointer-events:none}
+  .race-timer.hidden{display:none}
+  .race-timer.urgent{color:#ff5c5c;border-color:#ff5c5c}
+  .mode-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;width:min(640px,100%)}
+  .mode-card{background:linear-gradient(160deg,#2a3b5c,#1a2540);border:2px solid #3d7bff;border-radius:14px;padding:14px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .mode-card.race{background:linear-gradient(160deg,#c03030,#7a1010);border-color:#ff5c5c}
+  .mode-card.timer{background:linear-gradient(160deg,#2ee8c8,#0a7a6a);border-color:#2ee8c8}
+  .mode-card .mc-icon{font-size:32px}
+  .mode-card .mc-title{color:#fff;font-weight:800;font-size:16px}
+  .mode-card .mc-desc{color:rgba(255,255,255,.85);font-size:11px;line-height:1.4}
+  .mode-card .btn{min-width:0;padding:8px 16px;font-size:13px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.3);box-shadow:none}
+  .race-results{position:absolute;inset:0;background:rgba(4,7,14,.94);backdrop-filter:blur(8px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:15;padding:20px;text-align:center;overflow-y:auto}
+  .race-results.hidden{display:none}
+  .race-results h2{font-size:26px}
+  .race-results .place-badge{font-size:60px}
+  .race-results .race-list{display:flex;flex-direction:column;gap:5px;width:min(400px,100%)}
+  .race-results .race-row{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid #2a3b5c;border-radius:10px;padding:8px 12px}
+  .race-results .race-row.you{border-color:#ffd93b;background:rgba(255,217,59,.1)}
+  .race-results .race-row .rr-medal{font-size:18px;min-width:26px}
+  .race-results .race-row .rr-name{flex:1;color:#cfe0ff;font-weight:700;text-align:left;font-size:13px}
+  .race-results .race-row.you .rr-name{color:#ffd93b}
+  .race-results .race-row .rr-score{color:#9fc3ff;font-weight:800;font-size:13px}
+  .race-results .rr-reward{color:#ffd93b;font-weight:800;font-size:15px}
+  .race-results .rr-elo{color:#a86bff;font-weight:700;font-size:13px}
+  #flash{position:absolute;inset:0;background:radial-gradient(circle,rgba(255,217,59,.9),rgba(255,217,59,0));opacity:0;pointer-events:none;z-index:8;transition:opacity .3s}
+  #flash.show{opacity:1}
+  .autostart-hint{color:#ffd93b;font-weight:700;font-size:14px;margin-top:6px}
+  /* ===== МОБИЛЬНОЕ УПРАВЛЕНИЕ ===== */
+  #touchControls{position:absolute;bottom:0;left:0;right:0;height:180px;z-index:10;display:none;pointer-events:none}
+  #touchControls.active{display:block}
+  .touch-btn{position:absolute;pointer-events:auto;background:rgba(8,12,22,.55);border:2px solid rgba(255,255,255,.35);border-radius:50%;color:#fff;font-size:34px;font-weight:900;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:none;transition:background .1s,transform .1s}
+  .touch-btn:active,.touch-btn.pressed{background:rgba(61,123,255,.75);transform:scale(0.93)}
+  #touchLeft{left:18px;bottom:24px;width:76px;height:76px}
+  #touchRight{left:108px;bottom:24px;width:76px;height:76px}
+  #touchJump{right:22px;bottom:24px;width:100px;height:100px;background:rgba(76,217,100,.55);border-color:rgba(76,217,100,.85);font-size:30px}
+  #touchJump:active,#touchJump.pressed{background:rgba(76,217,100,.9)}
+  #touchPause{right:130px;bottom:28px;width:52px;height:52px;font-size:22px}
+</style>
+</head>
+<body>
+<div id="game">
+  <canvas id="canvas"></canvas>
+  <div id="flash"></div>
+  <div id="recordHint" class="record-hint"></div>
+  <div id="hud" class="hidden">
+    <div style="display:flex;gap:5px;flex-wrap:wrap">
+      <div class="chip" id="hudCoins">🪙 0</div>
+      <div class="chip blue" id="hudScore">0 м</div>
+      <div class="chip purple" id="hudXp">⭐ 0</div>
+    </div>
+    <div style="display:flex;gap:5px">
+      <div class="chip green" id="hudBoost" style="display:none">🚀 x2</div>
+      <div class="chip red" id="hudLives" style="display:none">❤️ 2</div>
+      <button id="pauseBtn">⏸</button>
+    </div>
+  </div>
+  <div id="raceTimer" class="race-timer hidden">60</div>
+  <div id="raceHud" class="race-hud hidden">
+    <div class="rh-title">🏁 Гонка</div>
+    <div id="raceHudRows"></div>
+  </div>
+
+  <div id="menuScreen" class="screen">
+    <h1>🪙 МЕГА ПРЫГУН</h1>
+    <div class="season-banner" id="seasonBanner">
+      <div class="sb-icon" id="seasonIcon">🎃</div>
+      <div class="sb-text">
+        <div class="sb-title" id="seasonTitle">Сезон</div>
+        <div class="sb-desc" id="seasonDesc">Особые награды!</div>
+      </div>
+      <div class="sb-timer" id="seasonTimer">--</div>
+    </div>
+    <div class="player-level">
+      <div class="lvl-badge" id="menuLvl">1</div>
+      <div class="lvl-info">
+        <div class="lvl-title" id="menuLvlTitle">Новичок</div>
+        <div class="lvl-xp-bar"><div class="lvl-xp-fill" id="menuXpFill"></div></div>
+        <div class="lvl-xp-text" id="menuXpText">0 / 100 XP</div>
+      </div>
+    </div>
+    <div class="rank-badge">
+      <div class="rank-icon" id="playerRankIcon">🌱</div>
+      <div class="rank-info">
+        <div class="rank-title" id="playerRankTitle">Рейтинг: Новичок (0)</div>
+        <div class="rank-bar"><div class="rank-fill" id="playerRankFill" style="width:0%"></div></div>
+        <div class="rank-text" id="playerRankText">0 / 100 до Любитель</div>
+      </div>
+    </div>
+    <div class="rank-badge">
+      <div class="rank-icon" id="rankIcon">🥉</div>
+      <div class="rank-info">
+        <div class="rank-title" id="rankTitle">Гонщик: Бронза</div>
+        <div class="rank-bar"><div class="rank-fill" id="rankFill"></div></div>
+        <div class="rank-text" id="rankText">0 / 50</div>
+      </div>
+    </div>
+    <div class="collection-progress">
+      <div class="cp-icon">👕</div>
+      <div class="cp-info">
+        <div class="cp-title">Коллекция скинов</div>
+        <div class="cp-bar"><div class="cp-fill" id="cpFill"></div></div>
+        <div class="cp-text" id="cpText">0 / 16</div>
+      </div>
+    </div>
+    <div class="mode-grid">
+      <div class="mode-card">
+        <div class="mc-icon">▶</div>
+        <div class="mc-title">Обычный забег</div>
+        <div class="mc-desc">Прыгай вверх и собирай монеты.</div>
+        <button class="btn gold" id="btnPlay">Играть</button>
+      </div>
+      <div class="mode-card race">
+        <div class="mc-icon">🏁</div>
+        <div class="mc-title">Гонка с ботами</div>
+        <div class="mc-desc">Кто выше за 60 секунд?</div>
+        <button class="btn gold" id="btnRace">Гонка</button>
+      </div>
+      <div class="mode-card timer">
+        <div class="mc-icon">⏱️</div>
+        <div class="mc-title">Таймер</div>
+        <div class="mc-desc">60 секунд. Собери больше монет!</div>
+        <button class="btn gold" id="btnTimer">Таймер</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px">
+      <div class="menu-btn-wrap">
+        <button class="btn red" id="btnWheel" style="min-width:140px">🎡 Фортуна</button>
+        <span class="badge" id="wheelBadge" style="display:none">!</span>
+      </div>
+      <div class="menu-btn-wrap">
+        <button class="btn purple" id="btnDaily" style="min-width:140px">🎁 Ежедневно</button>
+        <span class="badge" id="dailyBadge" style="display:none">!</span>
+      </div>
+      <div class="menu-btn-wrap">
+        <button class="btn orange" id="btnMissions" style="min-width:140px">📋 Миссии</button>
+        <span class="badge" id="missionsBadge" style="display:none">!</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+      <button class="btn teal" id="btnBiomes" style="min-width:140px">🌍 Биомы</button>
+      <button class="btn orange" id="btnCases" style="min-width:140px">🎁 Кейсы</button>
+      <button class="btn" id="btnShop" style="min-width:140px">🛒 Магазин</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+      <button class="btn purple" id="btnLeaderboard" style="min-width:140px">🏆 Лидеры</button>
+      <button class="btn purple" id="btnTournament" style="min-width:140px">🎯 Турнир</button>
+      <button class="btn teal" id="btnAchievements" style="min-width:140px">🏅 Достижения</button>
+      <button class="btn gray" id="btnSettings" style="min-width:140px">⚙ Настройки</button>
+    </div>
+    <div class="share-row">
+      <button class="btn purple small" id="btnSeasons">🎃 Сезон</button>
+    </div>
+    <div class="coins-line" id="menuCoins">Баланс: 🪙 0</div>
+  </div>
+
+  <div id="achievementsScreen" class="screen hidden">
+    <button class="btn gray back" id="achievementsBack">← Назад</button>
+    <h2>🏅 Достижения</h2>
+    <div class="coins-line" id="achCoins">Баланс: 🪙 0</div>
+    <div class="sub" id="achProgress">Открыто: 0 / 25</div>
+    <div class="mission-list" id="achList"></div>
+  </div>
+
+  <div id="tournamentScreen" class="screen hidden">
+    <button class="btn gray back" id="tournamentBack">← Назад</button>
+    <h2>🎯 Турнир</h2>
+    <div class="sub">3 гонки подряд. Сумма очков определяет место.</div>
+    <div class="sub" id="tournamentStatus" style="color:#ffd93b;font-weight:700"></div>
+    <button class="btn gold" id="btnTournamentStart">Начать турнир</button>
+  </div>
+
+  <div id="raceResults" class="race-results hidden">
+    <div class="place-badge" id="rrPlaceIcon">🥇</div>
+    <h2 id="rrTitle">1 место!</h2>
+    <div class="race-list" id="rrList"></div>
+    <div class="rr-reward" id="rrReward"></div>
+    <div class="rr-elo" id="rrElo"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px">
+      <button class="btn gold" id="rrAgain">🔁 Реванш</button>
+      <button class="btn gray" id="rrMenu">🏠 В меню</button>
+    </div>
+  </div>
+
+  <div id="deathScreen" class="screen hidden">
+    <h2 id="deathTitle">💀 Ты упал!</h2>
+    <div class="sub" id="deathInfo"></div>
+    <div class="autostart-hint" id="autostartHint">Автостарт через 2…</div>
+    <button class="btn gold" id="btnDeathRestart">🔁 Заново</button>
+    <button class="btn gray" id="btnDeathMenu">🏠 В меню</button>
+  </div>
+
+  <div id="seasonsScreen" class="screen hidden">
+    <button class="btn gray back" id="seasonsBack">← Назад</button>
+    <h2>🎃 Сезонные события</h2>
+    <div class="sub" id="seasonScreenDesc"></div>
+    <div class="sub" style="color:#ff9a3c;font-weight:700" id="seasonScreenTimer"></div>
+    <div class="sub" id="seasonScreenReward"></div>
+    <button class="btn gold" id="btnClaimSeason">Забрать сезонную награду</button>
+  </div>
+
+  <div id="wheelScreen" class="screen hidden">
+    <button class="btn gray back" id="wheelBack">← Назад</button>
+    <h2>🎡 Колесо фортуны</h2>
+    <div class="coins-line" id="wheelCoins">Баланс: 🪙 0</div>
+    <div class="sub">Крути бесплатно раз в 4 часа!</div>
+    <div class="wheel-wrap">
+      <div class="wheel-pointer">▼</div>
+      <canvas id="wheelCanvas" class="wheel-canvas" width="480" height="480"></canvas>
+      <div class="wheel-center" id="wheelCenter">🎁</div>
+    </div>
+    <div class="sub" id="wheelStatus"></div>
+  </div>
+
+  <div id="leaderboardScreen" class="screen hidden">
+    <button class="btn gray back" id="leaderboardBack">← Назад</button>
+    <h2>🏆 Таблица лидеров</h2>
+    <div class="sub">Твой лучший результат: <b style="color:#ffd93b" id="lbYourBest">0 м</b></div>
+    <div class="leaderboard" id="leaderboardList"></div>
+  </div>
+
+  <div id="dailyScreen" class="screen hidden">
+    <button class="btn gray back" id="dailyBack">← Назад</button>
+    <h2>🎁 Ежедневные награды</h2>
+    <div class="coins-line" id="dailyCoins">Баланс: 🪙 0</div>
+    <div class="sub" id="dailyStreakInfo" style="color:#ffd93b;font-weight:700"></div>
+    <div class="daily-grid" id="dailyGrid"></div>
+    <div class="sub" id="dailyStatus" style="margin-top:4px"></div>
+    <button class="btn gold" id="btnClaimDaily">Забрать награду</button>
+  </div>
+
+  <div id="missionsScreen" class="screen hidden">
+    <button class="btn gray back" id="missionsBack">← Назад</button>
+    <h2>📋 Миссии</h2>
+    <div class="coins-line" id="missionsCoins">Баланс: 🪙 0</div>
+    <div class="sub" id="missionsTimer" style="color:#7f93b8"></div>
+    <div class="mission-list" id="missionList"></div>
+    <button class="btn gray" id="btnRefreshMissions" style="margin-top:6px">🔄 Обновить миссии</button>
+  </div>
+
+  <div id="biomesScreen" class="screen hidden">
+    <button class="btn gray back" id="biomesBack">← Назад</button>
+    <h2>🌍 Биомы</h2>
+    <div class="coins-line" id="biomesCoins">Баланс: 🪙 0</div>
+    <div class="sub"><b style="color:#2ee8c8">Все биомы бесплатно для теста</b> — жми «Тест».</div>
+    <div class="biome-grid" id="biomeGrid"></div>
+  </div>
+
+  <div id="casesScreen" class="screen hidden">
+    <button class="btn gray back" id="casesBack">← Назад</button>
+    <h2>🎁 Кейсы</h2>
+    <div class="coins-line" id="casesCoins">Баланс: 🪙 0</div>
+    <div class="case-grid" id="caseGrid"></div>
+    <button class="btn" id="btnMySkins">👕 Мои скины</button>
+    <div class="case-modal hidden" id="caseModal">
+      <h2 id="caseModalTitle" style="margin:0">Открываем…</h2>
+      <div class="reel-wrap"><div class="reel" id="reel"></div><div class="reel-pointer"></div></div>
+      <div class="case-result" id="caseResult" style="display:none">
+        <div class="big-icon" id="resIcon">🎩</div>
+        <div class="res-rarity" id="resRarity">Обычный</div>
+        <div class="res-name" id="resName">Название</div>
+        <div class="res-dupe" id="resDupe" style="display:none"></div>
+        <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap;justify-content:center">
+          <button class="btn green" id="btnWear">👕 Надеть</button>
+          <button class="btn gray" id="btnCloseCase">Закрыть</button>
+        </div>
+      </div>
+      <button class="btn gray" id="btnSkipCase" style="display:none">Пропустить</button>
+    </div>
+  </div>
+
+  <div id="skinsScreen" class="screen hidden">
+    <button class="btn gray back" id="skinsBack">← Назад</button>
+    <h2>👕 Мои скины</h2>
+    <div class="skins-grid" id="skinsGrid"></div>
+  </div>
+
+  <div id="shopScreen" class="screen hidden">
+    <button class="btn gray back" id="shopBack">← Назад</button>
+    <h2>🛒 Магазин</h2>
+    <div class="npc-line">
+      <div class="npc-avatar">🧙</div>
+      <div class="npc-text" id="npcText">Заходи, герой! У меня есть всё, чтобы ты взлетел выше всех.</div>
+    </div>
+    <div class="coins-line" id="shopCoins">Баланс: 🪙 0</div>
+    <div class="shop-grid" id="shopGrid"></div>
+  </div>
+
+  <div id="settingsScreen" class="screen hidden">
+    <button class="btn gray back" id="settingsBack">← Назад</button>
+    <h2>⚙ Настройки</h2>
+    <div class="setting-row"><span>👤 Ник игрока</span><input id="nickInput" type="text" maxlength="16" placeholder="Игрок"></div>
+    <button class="btn green" id="btnSaveNick" style="margin-top:2px;margin-bottom:6px">💾 Сохранить ник</button>
+    <div class="setting-row"><span>🎨 Графика</span><div class="toggle" id="qualityToggle"><button data-q="high">Хорошее</button><button data-q="low">Низкое</button></div></div>
+    <div class="setting-row"><span>🔊 Звуки</span><div class="toggle" id="soundToggle"><button data-s="on">Вкл</button><button data-s="off">Выкл</button></div></div>
+    <div class="setting-row"><span>🎵 Музыка</span><div class="toggle" id="musicToggle"><button data-m="on">Вкл</button><button data-m="off">Выкл</button></div></div>
+    <div class="setting-row"><span>📳 Тряска</span><div class="toggle" id="shakeToggle"><button data-sh="on">Вкл</button><button data-sh="off">Выкл</button></div></div>
+    <div class="setting-row"><span>👆 Подсказки</span><div class="toggle" id="hintToggle"><button data-h="on">Вкл</button><button data-h="off">Выкл</button></div></div>
+    <div class="setting-row"><span>🎯 Рекорд</span><div class="toggle" id="bestToggle"><button data-b="on">Вкл</button><button data-b="off">Выкл</button></div></div>
+  </div>
+
+  <div id="pauseScreen" class="screen hidden">
+    <h2 id="pauseTitle">Пауза</h2>
+    <div class="sub" id="pauseInfo"></div>
+    <button class="btn gold" id="btnResume">▶ Продолжить</button>
+    <button class="btn gray" id="btnToMenu">🏠 В меню</button>
+  </div>
+
+  <div class="tutorial-overlay hidden" id="tutorialOverlay">
+    <div class="tut-icon" id="tutIcon">🎮</div>
+    <h2 id="tutTitle">Добро пожаловать!</h2>
+    <p id="tutText"></p>
+    <div class="tut-dots" id="tutDots"></div>
+    <button class="btn gold" id="tutBtn">Далее</button>
+  </div>
+
+  <div id="touchControls">
+    <div class="touch-btn" id="touchLeft">◀</div>
+    <div class="touch-btn" id="touchRight">▶</div>
+    <div class="touch-btn" id="touchJump">⬆</div>
+    <div class="touch-btn" id="touchPause">⏸</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+window.addEventListener('error', function(e) {
+  console.error('Ошибка игры:', e.message, 'строка', e.lineno);
+});
+
+(function(){
+'use strict';
+
+// Отключаем контекстное меню
+document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
+document.addEventListener('selectstart', function(e) { e.preventDefault(); return false; });
+
+var SAVE_KEY = 'megaJumper_v1';
+var defaultSave = {
+  coins: 0, bestScore: 0,
+  quality: 'high', sound: true, music: true, shake: true, hints: true, showBest: true,
+  upgrades: { highJump:false, doubleJump:false, magnet:false, coinBoost:false, slowFall:false, shield:false, extraLife:false },
+  ownedSkins: ['default'], selectedSkin: 'default',
+  lastDailyClaim: null, dailyStreak: 0,
+  missions: [], missionsResetAt: 0,
+  stats: { totalCoins:0, bestScore:0, totalJumps:0, totalRuns:0, totalCoinsAllTime:0 },
+  ownedBiomes: ['classic'], selectedBiome: 'classic', biomesFreeTest: true,
+  xp: 0, level: 1,
+  lastWheelSpin: 0,
+  tutorialDone: false,
+  leaderboardSeed: null,
+  seasonClaimed: {},
+  playerName: 'Игрок',
+  raceStats: { racesPlayed:0, wins:0, bestRaceScore:0, rating:0, bestRating:0 },
+  tournament: { active:false, races:0, totalScore:0, bestScore:0 },
+  tournamentWins: 0,
+  playerRating: 0,
+  achievements: {},
+  qualityAutoSet: false
+};
+var save = JSON.parse(JSON.stringify(defaultSave));
+try {
+  var raw = localStorage.getItem(SAVE_KEY);
+  if (raw) {
+    var p = JSON.parse(raw);
+    for (var k in p) if (Object.prototype.hasOwnProperty.call(p, k)) save[k] = p[k];
+    save.upgrades = Object.assign({ highJump:false, doubleJump:false, magnet:false, coinBoost:false, slowFall:false, shield:false, extraLife:false }, p.upgrades||{});
+    save.stats = Object.assign({ totalCoins:0, bestScore:0, totalJumps:0, totalRuns:0, totalCoinsAllTime:0 }, p.stats||{});
+    save.ownedSkins = p.ownedSkins || ['default'];
+    save.missions = p.missions || [];
+    save.ownedBiomes = p.ownedBiomes || ['classic'];
+    save.raceStats = Object.assign({ racesPlayed:0, wins:0, bestRaceScore:0, rating:0, bestRating:0 }, p.raceStats||{});
+    save.tournament = Object.assign({ active:false, races:0, totalScore:0, bestScore:0 }, p.tournament||{});
+    save.achievements = p.achievements || {};
+  }
+} catch(e) { console.warn('Сохранение не загружено', e); }
+
+if (!save.qualityAutoSet){
+  try {
+    var lowEnd = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) ||
+                 (navigator.deviceMemory && navigator.deviceMemory <= 2) ||
+                 /Android|iPhone|iPad/i.test(navigator.userAgent);
+    if (lowEnd) save.quality = 'low';
+    save.qualityAutoSet = true;
+  } catch(e) {}
+}
+
+function persist() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch(e){}
+}
+
+var PHYSICS = { gravity:2200, baseJump:780, highJumpMul:1.32, doubleJumpMul:0.85, moveSpeed:420, accel:3000, friction:2400, slowFallMul:0.72 };
+
+var LEVEL_TITLES = ['Новичок','Ученик','Любитель','Спортсмен','Прыгун','Акробат','Мастер','Эксперт','Профи','Виртуоз','Чемпион','Легенда','Бессмертный','Титан','Бог паркура'];
+function xpForLevel(l){ return Math.round(100 * Math.pow(1.4, l-1)); }
+function levelTitle(l){ return LEVEL_TITLES[Math.min(l-1, LEVEL_TITLES.length-1)] || 'Легенда+'; }
+
+var PLAYER_RANKS = [
+  {name:'Новичок', icon:'🌱', min:0, color:'#7f93b8'},
+  {name:'Любитель', icon:'🙂', min:100, color:'#4cd964'},
+  {name:'Спортсмен', icon:'🏃', min:300, color:'#3d7bff'},
+  {name:'Профи', icon:'🎯', min:600, color:'#a86bff'},
+  {name:'Мастер', icon:'⭐', min:1000, color:'#ffd93b'},
+  {name:'Легенда', icon:'👑', min:2000, color:'#ff9a3c'}
+];
+function getPlayerRank(rating){
+  var rank = PLAYER_RANKS[0];
+  for (var i=0;i<PLAYER_RANKS.length;i++){ if (rating >= PLAYER_RANKS[i].min) rank = PLAYER_RANKS[i]; }
+  return rank;
+}
+function nextPlayerRank(rating){
+  for (var i=0;i<PLAYER_RANKS.length;i++){ if (rating < PLAYER_RANKS[i].min) return PLAYER_RANKS[i]; }
+  return null;
+}
+function addRating(points){
+  if (points <= 0) return;
+  var oldRank = getPlayerRank(save.playerRating || 0);
+  save.playerRating = (save.playerRating || 0) + points;
+  persist();
+  var newRank = getPlayerRank(save.playerRating);
+  if (newRank.name !== oldRank.name){
+    AudioSys.levelUp();
+    setTimeout(function(){ toast('🎖️ Новый рейтинг: ' + newRank.icon + ' ' + newRank.name + '!', 4000); }, 600);
+  }
+}
+function renderPlayerRank(){
+  var rating = save.playerRating || 0;
+  var rank = getPlayerRank(rating);
+  $('playerRankIcon').textContent = rank.icon;
+  $('playerRankIcon').style.background = 'linear-gradient(160deg,' + rank.color + ',rgba(0,0,0,.4))';
+  $('playerRankTitle').textContent = 'Рейтинг: ' + rank.name + ' (' + rating + ')';
+  var nr = nextPlayerRank(rating);
+  if (nr){
+    var pct = (rating - rank.min) / (nr.min - rank.min) * 100;
+    $('playerRankFill').style.width = Math.min(100, pct) + '%';
+    $('playerRankFill').style.background = 'linear-gradient(90deg,' + rank.color + ',' + nr.color + ')';
+    $('playerRankText').textContent = rating + ' / ' + nr.min + ' до ' + nr.name;
+  } else {
+    $('playerRankFill').style.width = '100%';
+    $('playerRankFill').style.background = rank.color;
+    $('playerRankText').textContent = 'Максимальный рейтинг!';
+  }
+}
+
+var RANKS = [
+  {name:'Бронза', icon:'🥉', min:0, color:'#cd7f32'},
+  {name:'Серебро', icon:'🥈', min:50, color:'#c0c8d8'},
+  {name:'Золото', icon:'🥇', min:150, color:'#ffd93b'},
+  {name:'Платина', icon:'💎', min:350, color:'#a8f0ff'},
+  {name:'Легенда', icon:'👑', min:700, color:'#a86bff'}
+];
+function getRank(rating){
+  var rank = RANKS[0];
+  for (var i=0;i<RANKS.length;i++){ if (rating >= RANKS[i].min) rank = RANKS[i]; }
+  return rank;
+}
+function nextRank(rating){
+  for (var i=0;i<RANKS.length;i++){ if (rating < RANKS[i].min) return RANKS[i]; }
+  return null;
+}
+
+var ACHIEVEMENTS = [
+  {id:'first_100', icon:'🏃', title:'Первые 100 метров', desc:'Поднимись на 100 м', target:100, stat:'bestScore', reward:100},
+  {id:'first_500', icon:'🏔️', title:'Высота 500 м', desc:'Поднимись на 500 м', target:500, stat:'bestScore', reward:300},
+  {id:'first_1000', icon:'🌋', title:'Высота 1000 м', desc:'Поднимись на 1000 м', target:1000, stat:'bestScore', reward:600},
+  {id:'coins_100', icon:'🪙', title:'100 монет', desc:'Собери 100 монет всего', target:100, stat:'totalCoinsAllTime', reward:50},
+  {id:'coins_1000', icon:'💰', title:'1000 монет', desc:'Собери 1000 монет всего', target:1000, stat:'totalCoinsAllTime', reward:200},
+  {id:'coins_10000', icon:'🏦', title:'10000 монет', desc:'Собери 10000 монет всего', target:10000, stat:'totalCoinsAllTime', reward:1000},
+  {id:'runs_10', icon:'🎮', title:'10 забегов', desc:'Сыграй 10 забегов', target:10, stat:'totalRuns', reward:50},
+  {id:'runs_100', icon:'🎯', title:'100 забегов', desc:'Сыграй 100 забегов', target:100, stat:'totalRuns', reward:300},
+  {id:'jumps_100', icon:'🦘', title:'100 прыжков', desc:'Сделай 100 прыжков', target:100, stat:'totalJumps', reward:50},
+  {id:'jumps_1000', icon:'🚀', title:'1000 прыжков', desc:'Сделай 1000 прыжков', target:1000, stat:'totalJumps', reward:200},
+  {id:'jumps_10000', icon:'🕊️', title:'10000 прыжков', desc:'Сделай 10000 прыжков', target:10000, stat:'totalJumps', reward:1000},
+  {id:'race_1', icon:'🏁', title:'Первая гонка', desc:'Сыграй первую гонку', target:1, stat:'racesPlayed', reward:50},
+  {id:'race_10', icon:'🏆', title:'10 гонок', desc:'Сыграй 10 гонок', target:10, stat:'racesPlayed', reward:200},
+  {id:'race_win_1', icon:'🥇', title:'Первая победа', desc:'Выиграй гонку', target:1, stat:'raceWins', reward:100},
+  {id:'race_win_10', icon:'👑', title:'10 побед', desc:'Выиграй 10 гонок', target:10, stat:'raceWins', reward:500},
+  {id:'race_win_50', icon:'⭐', title:'50 побед', desc:'Выиграй 50 гонок', target:50, stat:'raceWins', reward:2000},
+  {id:'rank_silver', icon:'🥈', title:'Серебряный гонщик', desc:'Достигни ранга Серебро', target:50, stat:'raceRating', reward:150},
+  {id:'rank_gold', icon:'🥇', title:'Золотой гонщик', desc:'Достигни ранга Золото', target:150, stat:'raceRating', reward:400},
+  {id:'rank_legend', icon:'👑', title:'Легенда гонок', desc:'Достигни ранга Легенда', target:700, stat:'raceRating', reward:1000},
+  {id:'level_10', icon:'⭐', title:'10 уровень', desc:'Достигни 10 уровня', target:10, stat:'level', reward:300},
+  {id:'level_20', icon:'🌟', title:'20 уровень', desc:'Достигни 20 уровня', target:20, stat:'level', reward:800},
+  {id:'skins_5', icon:'👕', title:'5 скинов', desc:'Собери 5 скинов', target:5, stat:'skinsCount', reward:100},
+  {id:'skins_10', icon:'🎩', title:'10 скинов', desc:'Собери 10 скинов', target:10, stat:'skinsCount', reward:300},
+  {id:'skins_all', icon:'🌈', title:'Все скины!', desc:'Собери все 16 скинов', target:16, stat:'skinsCount', reward:2000},
+  {id:'tournament_1', icon:'🎯', title:'Первый турнир', desc:'Выиграй турнир', target:1, stat:'tournamentWins', reward:500}
+];
+
+function getAchStat(stat){
+  if (stat === 'bestScore') return save.bestScore || 0;
+  if (stat === 'totalCoinsAllTime') return save.stats.totalCoinsAllTime || 0;
+  if (stat === 'totalRuns') return save.stats.totalRuns || 0;
+  if (stat === 'totalJumps') return save.stats.totalJumps || 0;
+  if (stat === 'racesPlayed') return save.raceStats.racesPlayed || 0;
+  if (stat === 'raceWins') return save.raceStats.wins || 0;
+  if (stat === 'raceRating') return save.raceStats.rating || 0;
+  if (stat === 'level') return save.level || 1;
+  if (stat === 'skinsCount') return save.ownedSkins.length || 0;
+  if (stat === 'tournamentWins') return save.tournamentWins || 0;
+  return 0;
+}
+
+function checkAchievements(){
+  var unlocked = [];
+  for (var i=0;i<ACHIEVEMENTS.length;i++){
+    var a = ACHIEVEMENTS[i];
+    if (save.achievements[a.id]) continue;
+    var val = getAchStat(a.stat);
+    if (val >= a.target){
+      save.achievements[a.id] = true;
+      save.coins += a.reward;
+      unlocked.push(a);
+    }
+  }
+  if (unlocked.length){
+    persist();
+    unlocked.forEach(function(a, idx){
+      setTimeout(function(){
+        toast('🏅 Достижение: ' + a.icon + ' ' + a.title + ' (+' + a.reward + ' 🪙)', 4000);
+        AudioSys.reward();
+      }, idx * 800);
+    });
+  }
+}
+
+function renderAchievements(){
+  $('achCoins').textContent = 'Баланс: 🪙 ' + save.coins;
+  var unlocked = 0;
+  ACHIEVEMENTS.forEach(function(a){ if (save.achievements[a.id]) unlocked++; });
+  $('achProgress').textContent = 'Открыто: ' + unlocked + ' / ' + ACHIEVEMENTS.length;
+  var list = $('achList'); list.innerHTML = '';
+  ACHIEVEMENTS.forEach(function(a){
+    var unlockedFlag = save.achievements[a.id];
+    var val = Math.min(getAchStat(a.stat), a.target);
+    var pct = Math.floor(val / a.target * 100);
+    var item = document.createElement('div');
+    item.className = 'mission-item' + (unlockedFlag?' done':'');
+    item.innerHTML = '<div class="m-icon">' + a.icon + '</div><div class="m-body"><div class="m-title">' + a.title + (unlockedFlag?' ✅':'') + '</div><div class="m-desc">' + a.desc + '</div><div class="m-progress-bar"><div class="m-progress-fill" style="width:' + pct + '%"></div></div><div class="m-desc" style="margin-top:2px">' + val + ' / ' + a.target + '</div></div><div class="m-reward">🪙 ' + a.reward + '</div>';
+    list.appendChild(item);
+  });
+}
+
+var LEVEL_UNLOCKS = [
+  {level:2, icon:'🧲', text:'Магнит для монет в магазине'},
+  {level:3, icon:'🌲', text:'Биом «Лес»'},
+  {level:4, icon:'🕊️', text:'Двойной прыжок в магазине'},
+  {level:5, icon:'🎡', text:'Фортуна даёт +50% монет'},
+  {level:7, icon:'💰', text:'Бонус монет ×2'},
+  {level:12, icon:'🌌', text:'Биом «Космос»'},
+  {level:15, icon:'👑', text:'Корона в лидерборде'},
+  {level:20, icon:'🛡️', text:'Щит от падения'}
+];
+
+var BIOMES = [
+  {id:'classic', name:'Классика', icon:'🌃', desc:'Ночное небо', price:0, unlockLevel:0,
+    bg:['#16203a','#0f1728','#0a0e18'], platform:['#3d5a8f','#22355a'], fragile:'#b8763f', coin:['#fff3b0','#ffd93b','#d99a00'], star:'rgba(159,195,255,.35)', accent:'#3d7bff'},
+  {id:'forest', name:'Лес', icon:'🌲', desc:'Зелёный лес', price:50, unlockLevel:3,
+    bg:['#1a3a1a','#0f2a12','#081a0a'], platform:['#4a7a3a','#2a5a1a'], fragile:'#8a5a2a', coin:['#fff3b0','#ffd93b','#d99a00'], star:'rgba(159,255,159,.3)', accent:'#4cd964'},
+  {id:'desert', name:'Пустыня', icon:'🏜️', desc:'Песок', price:80, unlockLevel:4,
+    bg:['#5a3a1a','#4a2a12','#2a1a08'], platform:['#c99a5a','#9a6a2a'], fragile:'#a05a2a', coin:['#fff3b0','#ffd93b','#d99a00'], star:'rgba(255,220,150,.3)', accent:'#ff9a3c'},
+  {id:'ocean', name:'Океан', icon:'🌊', desc:'Глубины', price:120, unlockLevel:6,
+    bg:['#0a3a5a','#082a4a','#051a30'], platform:['#2a8aaa','#0a5a7a'], fragile:'#3a7a8a', coin:['#d0f0ff','#80d8ff','#30a0d0'], star:'rgba(150,220,255,.35)', accent:'#31c2f2'},
+  {id:'lava', name:'Вулкан', icon:'🌋', desc:'Лава', price:160, unlockLevel:7,
+    bg:['#3a0a0a','#2a0808','#150303'], platform:['#5a2a1a','#3a1a0a'], fragile:'#8a3a1a', coin:['#fff3b0','#ffd93b','#d99a00'], star:'rgba(255,150,80,.4)', accent:'#ff5c5c'},
+  {id:'snow', name:'Снежные горы', icon:'❄️', desc:'Лёд', price:200, unlockLevel:8,
+    bg:['#4a5a7a','#2a3a5a','#1a2540'], platform:['#c0d0e0','#8090a8'], fragile:'#a0b0c0', coin:['#fff3b0','#ffd93b','#d99a00'], star:'rgba(255,255,255,.5)', accent:'#a8f0ff'},
+  {id:'sunset', name:'Закат', icon:'🌅', desc:'Тёплый', price:250, unlockLevel:9,
+    bg:['#5a2a4a','#4a1a3a','#2a0a1a'], platform:['#9a5a6a','#6a2a4a'], fragile:'#8a4a2a', coin:['#fff3b0','#ffd93b','#d99a00'], star:'rgba(255,200,150,.4)', accent:'#ff8ad8'},
+  {id:'space', name:'Космос', icon:'🌌', desc:'Туманности', price:300, unlockLevel:12,
+    bg:['#1a0a3a','#0f052a','#050318'], platform:['#4a3a8a','#2a1a5a'], fragile:'#5a3a6a', coin:['#e0d0ff','#a86bff','#6a3ac0'], star:'rgba(200,180,255,.5)', accent:'#a86bff'},
+  {id:'city', name:'Ночной город', icon:'🏙️', desc:'Неон', price:350, unlockLevel:14,
+    bg:['#1a1a2a','#12121a','#0a0a10'], platform:['#4a4a6a','#2a2a4a'], fragile:'#6a4a3a', coin:['#fff3b0','#ffd93b','#d99a00'], star:'rgba(200,200,255,.4)', accent:'#ffd93b'},
+  {id:'neon', name:'Неон', icon:'⚡', desc:'Киберпанк', price:400, unlockLevel:16,
+    bg:['#0a0a2a','#1a0a2a','#050510'], platform:['#ff2a8a','#a80a5a'], fragile:'#2ae8c8', coin:['#a8ffef','#00ffcc','#00b3ff'], star:'rgba(255,100,255,.5)', accent:'#ff2a8a'},
+  {id:'candy', name:'Конфетный', icon:'🍭', desc:'Сладкое', price:450, unlockLevel:18,
+    bg:['#ffb0d8','#ff90c0','#e070a0'], platform:['#ffd0e8','#ff90b8'], fragile:'#ffa070', coin:['#fff3b0','#ffd93b','#d99a00'], star:'rgba(255,255,255,.6)', accent:'#ff80c0'},
+  {id:'underwater', name:'Подводный', icon:'🐠', desc:'Кораллы', price:500, unlockLevel:20,
+    bg:['#0a5a6a','#0a3a5a','#051a3a'], platform:['#3a9a8a','#1a6a5a'], fragile:'#8a6a3a', coin:['#d0fff0','#80ffd8','#30d0a0'], star:'rgba(150,255,220,.35)', accent:'#2ee8c8'},
+  {id:'volcano', name:'Лава-мир', icon:'🔥', desc:'Огонь', price:600, unlockLevel:22,
+    bg:['#4a1a0a','#3a0a08','#1a0303'], platform:['#8a3a1a','#5a1a0a'], fragile:'#ff6a2a', coin:['#fff3b0','#ffd93b','#d99a00'], star:'rgba(255,180,80,.5)', accent:'#ff9a3c'},
+  {id:'crystal', name:'Кристаллы', icon:'💎', desc:'Сияние', price:700, unlockLevel:25,
+    bg:['#2a1a4a','#1a0a3a','#0a0520'], platform:['#a0a8e0','#6a6aa8'], fragile:'#8a6ac0', coin:['#e0e8ff','#a0c0ff','#6090e0'], star:'rgba(180,200,255,.5)', accent:'#9fc3ff'},
+  {id:'jungle', name:'Джунгли', icon:'🌴', desc:'Лианы', price:750, unlockLevel:28,
+    bg:['#1a4a1a','#0a3a0a','#051a05'], platform:['#3a9a3a','#1a6a1a'], fragile:'#6a4a2a', coin:['#fff3b0','#ffd93b','#d99a00'], star:'rgba(150,255,150,.4)', accent:'#4cd964'},
+  {id:'aurora', name:'Северное сияние', icon:'🌠', desc:'Полярная ночь', price:850, unlockLevel:30,
+    bg:['#0a2a3a','#0a1a2a','#050a15'], platform:['#4ac0a0','#2a8a6a'], fragile:'#5a6a8a', coin:['#d0fff0','#80ffd8','#30d0a0'], star:'rgba(150,255,200,.5)', accent:'#2ee8c8'},
+  {id:'golden', name:'Золотой', icon:'👑', desc:'Золото', price:900, unlockLevel:35,
+    bg:['#3a2a0a','#2a1a05','#150d02'], platform:['#ffd93b','#d99a00'], fragile:'#c07a1a', coin:['#fff3b0','#ffd93b','#d99a00'], star:'rgba(255,220,100,.6)', accent:'#ffd93b'},
+  {id:'rainbow', name:'Радужный', icon:'🌈', desc:'Легендарный!', price:1000, unlockLevel:40,
+    bg:['#ff8ad8','#7c3aed','#3d7bff'], platform:['#ffd93b','#ff8ad8'], fragile:'#4cd964', coin:['#fff3b0','#ffd93b','#d99a00'], star:'rgba(255,255,255,.7)', accent:'#ff8ad8'}
+];
+function getBiome(id){ return BIOMES.find(function(b){return b.id===id;}) || BIOMES[0]; }
+function currentBiome(){ return getBiome(save.selectedBiome); }
+
+var SHOP_ITEMS = [
+  {id:'highJump', icon:'🦘', title:'Высокий прыжок', desc:'Прыжок +32%.', price:0, freeTest:true, unlockLevel:0},
+  {id:'magnet', icon:'🧲', title:'Магнит для монет', desc:'Притягивает монетки.', price:90, unlockLevel:2},
+  {id:'doubleJump', icon:'🕊️', title:'Двойной прыжок', desc:'Второй прыжок.', price:120, unlockLevel:4},
+  {id:'coinBoost', icon:'💰', title:'Бонус монет ×2', desc:'Монетка = 2.', price:150, unlockLevel:7},
+  {id:'slowFall', icon:'🪂', title:'Плавное падение', desc:'Падение -25%.', price:200, unlockLevel:10},
+  {id:'shield', icon:'🛡️', title:'Щит от падения', desc:'1 раз за забег.', price:350, unlockLevel:20},
+  {id:'extraLife', icon:'❤️', title:'Доп. жизнь', desc:'Второй шанс.', price:500, unlockLevel:25}
+];
+
+var SKINS = [
+  {id:'default', name:'Новичок', icon:'🙂', rarity:'common', top:'#7ab8ff', bottom:'#3d7bff', effect:null},
+  {id:'red', name:'Красный', icon:'😎', rarity:'common', top:'#ff8a8a', bottom:'#e63946', effect:null},
+  {id:'green', name:'Лягушка', icon:'🐸', rarity:'common', top:'#8be88b', bottom:'#2ea043', effect:null},
+  {id:'orange', name:'Лис', icon:'🦊', rarity:'common', top:'#ffb46b', bottom:'#e8730e', effect:null},
+  {id:'pink', name:'Розовый', icon:'🌸', rarity:'common', top:'#ffb3de', bottom:'#e055a0', effect:null},
+  {id:'yellow', name:'Цыплёнок', icon:'🐥', rarity:'common', top:'#fff08a', bottom:'#e8c200', effect:null},
+  {id:'cyan', name:'Ледяной', icon:'🧊', rarity:'rare', top:'#a8f0ff', bottom:'#31c2f2', effect:null},
+  {id:'blue', name:'Космос', icon:'🌌', rarity:'rare', top:'#8aa8ff', bottom:'#3a3a9a', effect:null},
+  {id:'teal', name:'Ниндзя', icon:'🥷', rarity:'rare', top:'#8ae0c8', bottom:'#1a7a6a', effect:null},
+  {id:'purple', name:'Маг', icon:'🧙', rarity:'epic', top:'#c4a4ff', bottom:'#7c3aed', effect:'glow'},
+  {id:'neon', name:'Неон', icon:'⚡', rarity:'epic', top:'#a8ffef', bottom:'#00b3ff', effect:'glow'},
+  {id:'fire', name:'Огненный', icon:'🔥', rarity:'epic', top:'#ffc46b', bottom:'#e63946', effect:'trail'},
+  {id:'ghost', name:'Призрак', icon:'👻', rarity:'epic', top:'#e0e8f5', bottom:'#9aa8c0', effect:'ghost'},
+  {id:'gold', name:'Золотой', icon:'👑', rarity:'legendary', top:'#fff3b0', bottom:'#d99a00', effect:'glow'},
+  {id:'rainbow', name:'Радужный', icon:'🌈', rarity:'legendary', top:'#ff8ad8', bottom:'#7c3aed', effect:'rainbow'},
+  {id:'dragon', name:'Дракон', icon:'🐉', rarity:'legendary', top:'#8affc4', bottom:'#0a8a4a', effect:'trail'}
+];
+
+var CASES = [
+  {id:'starter', name:'Стартовый', icon:'📦', rarityClass:'common', desc:'Обычные и редкие', price:50, probs:{common:70,rare:25,epic:5,legendary:0}},
+  {id:'silver', name:'Серебряный', icon:'🎁', rarityClass:'rare', desc:'Больше редких', price:120, probs:{common:40,rare:45,epic:13,legendary:2}},
+  {id:'gold', name:'Золотой', icon:'🏆', rarityClass:'epic', desc:'Эпики и легендарки', price:220, probs:{common:10,rare:40,epic:40,legendary:10}},
+  {id:'legendary', name:'Легендарный', icon:'👑', rarityClass:'legendary', desc:'Топ-скины', price:300, probs:{common:0,rare:0,epic:60,legendary:40}}
+];
+
+function rollSkin(probs){
+  var roll = Math.random()*100, acc=0, rarity='common';
+  var keys = ['common','rare','epic','legendary'];
+  for (var i=0;i<keys.length;i++){ acc += probs[keys[i]] || 0; if (roll < acc){ rarity = keys[i]; break; } }
+  var pool = SKINS.filter(function(s){return s.rarity===rarity;});
+  if (!pool.length) pool = SKINS.filter(function(s){return s.rarity==='common';});
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+var SEASONS = [
+  {id:'halloween', name:'Хэллоуин', icon:'🎃', desc:'Конфеты и скины!', reward:500, days:7, startMonth:10, startDay:25},
+  {id:'newyear', name:'Новый год', icon:'🎄', desc:'Зимнее волшебство!', reward:700, days:7, startMonth:12, startDay:25},
+  {id:'spring', name:'Весна', icon:'🌸', desc:'Цветение!', reward:400, days:7, startMonth:3, startDay:1},
+  {id:'summer', name:'Лето', icon:'☀️', desc:'Жаркие дни!', reward:400, days:7, startMonth:6, startDay:1}
+];
+function getCurrentSeason(){
+  var now = new Date(); var month = now.getMonth()+1, day = now.getDate();
+  if (month===10 && day>=25) return SEASONS[0];
+  if (month===12 && day>=25) return SEASONS[1];
+  if (month>=3 && month<=5) return SEASONS[2];
+  if (month>=6 && month<=8) return SEASONS[3];
+  return SEASONS[0];
+}
+function getSeasonTimeLeft(){
+  var now = new Date(); var season = getCurrentSeason();
+  var start = new Date(now.getFullYear(), season.startMonth-1, season.startDay);
+  var end = new Date(start.getTime() + season.days*24*60*60*1000);
+  var ms = end - now;
+  if (ms <= 0) return {h:0,m:0,expired:true};
+  return {h: Math.floor(ms/(60*60*1000)), m: Math.floor((ms%(60*60*1000))/(60*1000)), expired:false};
+}
+
+var AudioSys = (function(){
+  var ctxAudio = null, masterGain = null;
+  var enabled = save.sound !== false;
+  var musicEnabled = save.music !== false;
+  var musicInterval = null;
+  function ensureCtx(){
+    if (!ctxAudio){
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      ctxAudio = new AC(); masterGain = ctxAudio.createGain();
+      masterGain.gain.value = 0.28; masterGain.connect(ctxAudio.destination);
+    }
+    if (ctxAudio.state === 'suspended') ctxAudio.resume();
+    return ctxAudio;
+  }
+  function tone(o){
+    if (!enabled) return;
+    var c = ensureCtx(); if (!c) return;
+    var freq = o.freq||880, dur = o.duration||0.12, type = o.type||'sine', vol = o.volume||0.5;
+    var slideTo = o.slideTo||null, delay = o.delay||0;
+    var start = c.currentTime + delay;
+    var osc = c.createOscillator(), g = c.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, start);
+    if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, start+dur);
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.exponentialRampToValueAtTime(vol, start+0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, start+dur);
+    osc.connect(g); g.connect(masterGain);
+    osc.start(start); osc.stop(start+dur+0.02);
+  }
+  function coin(combo){ combo = combo||0; var base=880, step=Math.min(combo,8);
+    var f1 = base*Math.pow(2,step/12), f2 = f1*1.5;
+    tone({freq:f1,duration:0.07,type:'triangle',volume:0.45});
+    tone({freq:f2,duration:0.11,type:'triangle',volume:0.35,delay:0.05});
+  }
+  function jump(){ tone({freq:420,slideTo:720,duration:0.16,type:'square',volume:0.16}); }
+  function doubleJump(){ tone({freq:600,slideTo:980,duration:0.18,type:'square',volume:0.16}); }
+  function land(){ tone({freq:180,slideTo:120,duration:0.08,type:'sine',volume:0.14}); }
+  function fall(){ tone({freq:500,slideTo:90,duration:0.5,type:'sawtooth',volume:0.22}); }
+  function crack(){ tone({freq:220,slideTo:140,duration:0.12,type:'square',volume:0.12}); }
+  function purchase(){
+    tone({freq:660,duration:0.09,type:'triangle',volume:0.4});
+    tone({freq:880,duration:0.09,type:'triangle',volume:0.4,delay:0.09});
+    tone({freq:1320,duration:0.14,type:'triangle',volume:0.35,delay:0.18});
+  }
+  function denied(){ tone({freq:200,slideTo:150,duration:0.16,type:'square',volume:0.2}); }
+  function shield(){ tone({freq:300,slideTo:1200,duration:0.3,type:'sine',volume:0.3}); }
+  function caseOpen(){
+    tone({freq:300,slideTo:600,duration:0.3,type:'sawtooth',volume:0.15});
+    tone({freq:150,duration:0.4,type:'sine',volume:0.2});
+  }
+  function caseTick(){ tone({freq:1200,duration:0.03,type:'square',volume:0.08}); }
+  function caseReveal(r){
+    if (r==='common') tone({freq:600,duration:0.2,type:'triangle',volume:0.3});
+    else if (r==='rare'){ tone({freq:700,duration:0.15,type:'triangle',volume:0.35}); tone({freq:900,duration:0.25,type:'triangle',volume:0.35,delay:0.15}); }
+    else if (r==='epic'){ tone({freq:500,duration:0.12,type:'triangle',volume:0.4}); tone({freq:750,duration:0.12,type:'triangle',volume:0.4,delay:0.12}); tone({freq:1000,duration:0.3,type:'triangle',volume:0.4,delay:0.24}); }
+    else { tone({freq:660,duration:0.15,type:'triangle',volume:0.5}); tone({freq:880,duration:0.15,type:'triangle',volume:0.5,delay:0.15}); tone({freq:1100,duration:0.15,type:'triangle',volume:0.5,delay:0.3}); tone({freq:1320,duration:0.5,type:'triangle',volume:0.5,delay:0.45}); }
+  }
+  function reward(){
+    tone({freq:523,duration:0.1,type:'triangle',volume:0.4});
+    tone({freq:659,duration:0.1,type:'triangle',volume:0.4,delay:0.1});
+    tone({freq:784,duration:0.1,type:'triangle',volume:0.4,delay:0.2});
+    tone({freq:1047,duration:0.3,type:'triangle',volume:0.4,delay:0.3});
+  }
+  function levelUp(){
+    tone({freq:523,duration:0.12,type:'triangle',volume:0.45});
+    tone({freq:659,duration:0.12,type:'triangle',volume:0.45,delay:0.12});
+    tone({freq:784,duration:0.12,type:'triangle',volume:0.45,delay:0.24});
+    tone({freq:1047,duration:0.12,type:'triangle',volume:0.45,delay:0.36});
+    tone({freq:1319,duration:0.5,type:'triangle',volume:0.45,delay:0.48});
+  }
+  function wheelSpin(){ tone({freq:800,duration:0.02,type:'square',volume:0.06}); }
+  function raceCountdown(n){ tone({freq:400+n*100,duration:0.15,type:'square',volume:0.3}); }
+  function raceStart(){ tone({freq:523,duration:0.15,type:'square',volume:0.4}); tone({freq:659,duration:0.15,type:'square',volume:0.4,delay:0.15}); tone({freq:784,duration:0.3,type:'square',volume:0.4,delay:0.3}); }
+  function raceEnd(){ tone({freq:784,duration:0.2,type:'triangle',volume:0.5}); tone({freq:1047,duration:0.2,type:'triangle',volume:0.5,delay:0.2}); tone({freq:1319,duration:0.5,type:'triangle',volume:0.5,delay:0.4}); }
+  function raceWin(){ tone({freq:523,duration:0.12,type:'triangle',volume:0.5}); tone({freq:659,duration:0.12,type:'triangle',volume:0.5,delay:0.12}); tone({freq:784,duration:0.12,type:'triangle',volume:0.5,delay:0.24}); tone({freq:1047,duration:0.12,type:'triangle',volume:0.5,delay:0.36}); tone({freq:1319,duration:0.6,type:'triangle',volume:0.5,delay:0.48}); }
+  function setEnabled(v){ enabled = v; save.sound = v; persist(); if (v) ensureCtx(); }
+  function setMusic(v){
+    musicEnabled = v; save.music = v; persist();
+    if (v) startMusic(); else stopMusic();
+  }
+  function startMusic(){
+    if (!musicEnabled) return;
+    var c = ensureCtx(); if (!c) return;
+    if (musicInterval) return;
+    var notes = [261.63,329.63,392.00,523.25,392.00,329.63]; var i = 0;
+    musicInterval = setInterval(function(){
+      if (!musicEnabled) return;
+      var osc = c.createOscillator(), g = c.createGain();
+      osc.type = 'sine'; osc.frequency.value = notes[i%notes.length];
+      g.gain.setValueAtTime(0.0001, c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.04, c.currentTime+0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime+0.4);
+      osc.connect(g); g.connect(masterGain);
+      osc.start(); osc.stop(c.currentTime+0.5);
+      i++;
+    }, 500);
+  }
+  function stopMusic(){ if (musicInterval){ clearInterval(musicInterval); musicInterval = null; } }
+  function unlock(){ ensureCtx(); if (save.music) startMusic(); }
+  return { coin:coin, jump:jump, doubleJump:doubleJump, land:land, fall:fall, crack:crack, purchase:purchase, denied:denied, shield:shield, caseOpen:caseOpen, caseTick:caseTick, caseReveal:caseReveal, reward:reward, levelUp:levelUp, wheelSpin:wheelSpin, raceCountdown:raceCountdown, raceStart:raceStart, raceEnd:raceEnd, raceWin:raceWin, setEnabled:setEnabled, setMusic:setMusic, stopMusic:stopMusic, unlock:unlock };
+})();
+
+function $(id){ return document.getElementById(id); }
+var canvas = $('canvas');
+var ctx = canvas.getContext('2d');
+var screens = { menu:$('menuScreen'), wheel:$('wheelScreen'), leaderboard:$('leaderboardScreen'), biomes:$('biomesScreen'), daily:$('dailyScreen'), missions:$('missionsScreen'), cases:$('casesScreen'), skins:$('skinsScreen'), shop:$('shopScreen'), settings:$('settingsScreen'), pause:$('pauseScreen'), seasons:$('seasonsScreen'), death:$('deathScreen'), tournament:$('tournamentScreen'), achievements:$('achievementsScreen') };
+var hud = $('hud');
+var toastEl = $('toast');
+
+function loadNick(){
+  var input = $('nickInput');
+  if (input) input.value = save.playerName || 'Игрок';
+}
+
+function showScreen(name){
+  Object.keys(screens).forEach(function(k){ screens[k].classList.add('hidden'); });
+  if (name) screens[name].classList.remove('hidden');
+  hud.classList.toggle('hidden', !!name && name !== 'pause');
+  if (name==='menu'){ refreshMenuCoins(); updateMenuBadges(); renderPlayerLevel(); renderSeasonBanner(); renderCollectionProgress(); renderRank(); renderPlayerRank(); }
+  else if (name==='wheel'){ refreshWheelCoins(); renderWheel(); }
+  else if (name==='leaderboard') renderLeaderboard();
+  else if (name==='biomes'){ refreshBiomesCoins(); renderBiomes(); }
+  else if (name==='daily'){ refreshDailyCoins(); renderDaily(); }
+  else if (name==='missions'){ refreshMissionsCoins(); renderMissions(); }
+  else if (name==='cases'){ refreshCasesCoins(); renderCases(); }
+  else if (name==='skins') renderSkins();
+  else if (name==='shop') renderShop();
+  else if (name==='settings'){ refreshToggles(); loadNick(); }
+  else if (name==='seasons') renderSeasonScreen();
+  else if (name==='tournament') renderTournament();
+  else if (name==='achievements') renderAchievements();
+}
+
+function toast(msg, ms){
+  ms = ms || 2400;
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ toastEl.classList.remove('show'); }, ms);
+}
+function flashScreen(){
+  var el = $('flash');
+  el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, 250);
+}
+function refreshMenuCoins(){ $('menuCoins').textContent = 'Баланс: 🪙 ' + save.coins; }
+function refreshWheelCoins(){ $('wheelCoins').textContent = 'Баланс: 🪙 ' + save.coins; }
+function refreshBiomesCoins(){ $('biomesCoins').textContent = 'Баланс: 🪙 ' + save.coins; }
+function refreshDailyCoins(){ $('dailyCoins').textContent = 'Баланс: 🪙 ' + save.coins; }
+function refreshMissionsCoins(){ $('missionsCoins').textContent = 'Баланс: 🪙 ' + save.coins; }
+function refreshCasesCoins(){ $('casesCoins').textContent = 'Баланс: 🪙 ' + save.coins; }
+
+function renderPlayerLevel(){
+  $('menuLvl').textContent = save.level;
+  $('menuLvlTitle').textContent = levelTitle(save.level);
+  var need = xpForLevel(save.level);
+  $('menuXpFill').style.width = Math.min(100, save.xp/need*100) + '%';
+  $('menuXpText').textContent = save.xp + ' / ' + need + ' XP';
+}
+function renderRank(){
+  var rank = getRank(save.raceStats.rating || 0);
+  $('rankIcon').textContent = rank.icon;
+  $('rankTitle').textContent = 'Гонщик: ' + rank.name;
+  var nr = nextRank(save.raceStats.rating || 0);
+  if (nr){
+    var pct = ((save.raceStats.rating||0) - rank.min) / (nr.min - rank.min) * 100;
+    $('rankFill').style.width = Math.min(100, pct) + '%';
+    $('rankFill').style.background = 'linear-gradient(90deg,' + rank.color + ',' + nr.color + ')';
+    $('rankText').textContent = (save.raceStats.rating||0) + ' / ' + nr.min + ' до ' + nr.name;
+  } else {
+    $('rankFill').style.width = '100%';
+    $('rankFill').style.background = rank.color;
+    $('rankText').textContent = 'Максимальный ранг!';
+  }
+}
+function renderSeasonBanner(){
+  var season = getCurrentSeason(), left = getSeasonTimeLeft();
+  $('seasonIcon').textContent = season.icon;
+  $('seasonTitle').textContent = season.name;
+  $('seasonDesc').textContent = season.desc;
+  $('seasonTimer').textContent = left.expired ? 'Завершён' : left.h + 'ч ' + left.m + 'м';
+}
+function renderCollectionProgress(){
+  var owned = save.ownedSkins.length, total = SKINS.length;
+  $('cpFill').style.width = (owned/total*100) + '%';
+  $('cpText').textContent = owned + ' / ' + total + ' скинов';
+}
+
+function addXp(amount){
+  save.xp += amount;
+  var leveledUp = false, newLevels = [];
+  while (save.xp >= xpForLevel(save.level)){
+    save.xp -= xpForLevel(save.level); save.level++; leveledUp = true; newLevels.push(save.level);
+  }
+  if (leveledUp){
+    var bonus = save.level * 10;
+    save.coins += bonus; persist(); AudioSys.levelUp();
+    addRating(save.level * 5);
+    newLevels.forEach(function(lvl){
+      var unlock = LEVEL_UNLOCKS.find(function(u){return u.level===lvl;});
+      if (unlock) setTimeout(function(){ toast('🔓 Уровень ' + lvl + ': ' + unlock.icon + ' ' + unlock.text, 4000); }, 500);
+    });
+    setTimeout(function(){ toast('🎉 Уровень ' + save.level + '! +' + bonus + ' 🪙', 3500); }, 300);
+  }
+  persist();
+  checkAchievements();
+}
+
+function updateMenuBadges(){
+  var dailyInfo = getDailyInfo();
+  $('dailyBadge').style.display = dailyInfo.canClaim ? '' : 'none';
+  var wheelInfo = getWheelInfo();
+  $('wheelBadge').style.display = wheelInfo.canSpin ? '' : 'none';
+  checkMissionsReset();
+  var hasClaimable = save.missions.some(function(m){return m.progress>=m.target && !m.claimed;});
+  $('missionsBadge').style.display = hasClaimable ? '' : 'none';
+  checkAchievements();
+}
+
+var WHEEL_PRIZES = [
+  {type:'coins', amount:30, label:'30', color:'#3d7bff', icon:'🪙'},
+  {type:'xp', amount:20, label:'20 XP', color:'#7c3aed', icon:'⭐'},
+  {type:'coins', amount:50, label:'50', color:'#3d7bff', icon:'🪙'},
+  {type:'case', caseId:'starter', label:'Кейс', color:'#e8730e', icon:'📦'},
+  {type:'coins', amount:80, label:'80', color:'#3d7bff', icon:'🪙'},
+  {type:'xp', amount:40, label:'40 XP', color:'#7c3aed', icon:'⭐'},
+  {type:'coins', amount:120, label:'120', color:'#3d7bff', icon:'🪙'},
+  {type:'skin', label:'Скин', color:'#e63946', icon:'👕'}
+];
+var WHEEL_COOLDOWN = 4*60*60*1000;
+var wheelAngle = 0, wheelSpinning = false;
+
+function getWheelInfo(){
+  var now = Date.now();
+  var nextAt = (save.lastWheelSpin||0) + WHEEL_COOLDOWN;
+  return {canSpin: now >= nextAt, nextAt: nextAt};
+}
+function renderWheel(){
+  drawWheel();
+  var info = getWheelInfo(), center = $('wheelCenter'), status = $('wheelStatus');
+  if (wheelSpinning){ center.classList.add('disabled'); status.textContent = 'Крутится…'; }
+  else if (info.canSpin){ center.classList.remove('disabled'); status.textContent = '🎁 Нажми на центр, чтобы крутить!'; }
+  else {
+    center.classList.add('disabled');
+    var msLeft = info.nextAt - Date.now();
+    var h = Math.floor(msLeft/(60*60*1000)), m = Math.floor((msLeft%(60*60*1000))/(60*1000));
+    status.textContent = 'Следующая попытка через ' + h + ' ч ' + m + ' мин';
+  }
+  refreshWheelCoins();
+}
+function drawWheel(){
+  var c = $('wheelCanvas'), wctx = c.getContext('2d');
+  var W = c.width, H = c.height, cx = W/2, cy = H/2, r = Math.min(W,H)/2 - 10;
+  wctx.clearRect(0,0,W,H);
+  var n = WHEEL_PRIZES.length, seg = (Math.PI*2)/n;
+  for (var i=0;i<n;i++){
+    var start = i*seg + wheelAngle, end = start + seg;
+    wctx.beginPath(); wctx.moveTo(cx,cy); wctx.arc(cx,cy,r,start,end); wctx.closePath();
+    wctx.fillStyle = WHEEL_PRIZES[i].color; wctx.fill();
+    wctx.strokeStyle = 'rgba(255,255,255,.3)'; wctx.lineWidth = 3; wctx.stroke();
+    wctx.save(); wctx.translate(cx,cy); wctx.rotate(start + seg/2);
+    wctx.textAlign = 'center'; wctx.textBaseline = 'middle'; wctx.fillStyle = '#fff';
+    wctx.font = 'bold 20px Segoe UI, Arial';
+    wctx.fillText(WHEEL_PRIZES[i].label, r*0.65, 0);
+    wctx.font = '24px Segoe UI Emoji';
+    wctx.fillText(WHEEL_PRIZES[i].icon, r*0.42, 0);
+    wctx.restore();
+  }
+  wctx.beginPath(); wctx.arc(cx,cy,r+4,0,Math.PI*2); wctx.strokeStyle = '#ffd93b'; wctx.lineWidth = 8; wctx.stroke();
+}
+function spinWheel(){
+  if (wheelSpinning) return;
+  var info = getWheelInfo();
+  if (!info.canSpin){ AudioSys.denied(); toast('Ещё рано! Подожди.'); return; }
+  wheelSpinning = true; save.lastWheelSpin = Date.now(); persist();
+  var prizeIndex = Math.floor(Math.random()*WHEEL_PRIZES.length);
+  var prize = WHEEL_PRIZES[prizeIndex];
+  var n = WHEEL_PRIZES.length, seg = (Math.PI*2)/n;
+  var targetCenter = -Math.PI/2;
+  var spins = 5 + Math.random()*2;
+  var finalAngle = targetCenter - prizeIndex*seg - seg/2 - spins*Math.PI*2;
+  var startAngle = wheelAngle, startTime = performance.now(), duration = 4000, lastTick = 0;
+  function anim(now){
+    var t = Math.min(1,(now-startTime)/duration);
+    var eased = 1 - Math.pow(1-t,3);
+    wheelAngle = startAngle + (finalAngle-startAngle)*eased;
+    drawWheel();
+    if (now-lastTick > 60){ AudioSys.wheelSpin(); lastTick = now; }
+    if (t<1) requestAnimationFrame(anim);
+    else { wheelAngle = finalAngle % (Math.PI*2); wheelSpinning = false; applyWheelPrize(prize); renderWheel(); }
+  }
+  requestAnimationFrame(anim);
+}
+function applyWheelPrize(prize){
+  var mult = save.level>=5 ? 1.5 : 1;
+  if (prize.type==='coins'){
+    var amount = Math.round(prize.amount*mult);
+    save.coins += amount; save.stats.totalCoinsAllTime += amount;
+    addRating(5);
+    toast('🎉 +' + amount + ' 🪙!' + (mult>1 ? ' (×1.5)' : ''));
+  } else if (prize.type==='xp'){
+    var amountXp = Math.round(prize.amount*mult);
+    addXp(amountXp);
+    addRating(5);
+    toast('🎉 +' + amountXp + ' XP!' + (mult>1 ? ' (×1.5)' : ''));
+  } else if (prize.type==='case'){
+    var caseData = CASES.find(function(c){return c.id===prize.caseId;});
+    var skin = rollSkin(caseData.probs);
+    if (save.ownedSkins.indexOf(skin.id) < 0){ save.ownedSkins.push(skin.id); toast('🎁 Скин «' + skin.name + '» ' + skin.icon + '!', 3000); }
+    else { save.coins += 25; toast('🎁 Дубликат → +25 🪙', 3000); }
+    addRating(10);
+  } else if (prize.type==='skin'){
+    var rarities = ['common','rare','epic'];
+    var rarity = rarities[Math.floor(Math.random()*rarities.length)];
+    var pool = SKINS.filter(function(s){return s.rarity===rarity;});
+    var s = pool[Math.floor(Math.random()*pool.length)];
+    if (save.ownedSkins.indexOf(s.id) < 0){ save.ownedSkins.push(s.id); toast('👕 Скин «' + s.name + '» ' + s.icon + '!', 3000); }
+    else { save.coins += 40; toast('👕 Дубликат → +40 🪙', 3000); }
+    addRating(15);
+  }
+  persist(); updateMenuBadges(); AudioSys.reward();
+  checkAchievements();
+}
+
+var BOT_NAMES = ['Прыгун','Акробат','Молния','Вихрь','Космонавт','Ниндзя','Титан','Стрела','Пингвин','Дракон','Кот','Лис','Ёжик','Сокол','Феникс','Гризли','Волк','Орёл','Тигр','Ястреб'];
+function generateLeaderboard(){
+  if (save.leaderboardSeed && save.leaderboardSeed.length) return save.leaderboardSeed;
+  var seed = [];
+  for (var i=0;i<20;i++){
+    var name = BOT_NAMES[i%BOT_NAMES.length] + (i>=BOT_NAMES.length ? ' ' + (i+1) : '');
+    var score = Math.floor(800 - i*35 + Math.random()*40);
+    seed.push({name:name, score:Math.max(30,score)});
+  }
+  seed.sort(function(a,b){return b.score-a.score;});
+  save.leaderboardSeed = seed; persist();
+  return seed;
+}
+function renderLeaderboard(){
+  var list = $('leaderboardList'); list.innerHTML = '';
+  var bots = generateLeaderboard();
+  var all = bots.concat([{name:save.playerName||'Ты', score:save.bestScore, isYou:true}]);
+  all.sort(function(a,b){return b.score-a.score;});
+  $('lbYourBest').textContent = save.bestScore + ' м';
+  all.slice(0,20).forEach(function(entry, idx){
+    var rank = idx+1;
+    var row = document.createElement('div');
+    row.className = 'lb-row' + (entry.isYou?' you':'') + (rank===1?' top1':rank===2?' top2':rank===3?' top3':'');
+    var medal = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':rank;
+    var name = entry.name;
+    if (entry.isYou && save.level>=15) name = '👑 ' + name;
+    row.innerHTML = '<div class="lb-rank">' + medal + '</div><div class="lb-name">' + name + '</div><div class="lb-score">' + entry.score + ' м</div>';
+    list.appendChild(row);
+  });
+}
+
+var DAILY_REWARDS = [
+  {day:1, coins:50, caseChance:0}, {day:2, coins:75, caseChance:0}, {day:3, coins:100, caseChance:0.1},
+  {day:4, coins:125, caseChance:0.1}, {day:5, coins:155, caseChance:0.15}, {day:6, coins:180, caseChance:0.2},
+  {day:7, coins:210, caseChance:1.0}
+];
+function getDailyInfo(){
+  var now = Date.now(), DAY_MS = 24*60*60*1000, last = save.lastDailyClaim||0;
+  var canClaim = true, nextClaimAt = 0;
+  if (last>0){ var elapsed = now-last; if (elapsed < DAY_MS){ canClaim = false; nextClaimAt = last + DAY_MS; } }
+  var displayDay;
+  if (canClaim){ if (last>0 && (now-last)>2*DAY_MS) displayDay=1; else displayDay = Math.min((save.dailyStreak%7)+1,7); }
+  else { displayDay = Math.min(save.dailyStreak,7); if (displayDay===0) displayDay=1; }
+  return {canClaim:canClaim, nextClaimAt:nextClaimAt, displayDay:displayDay};
+}
+function renderDaily(){
+  var info = getDailyInfo(), grid = $('dailyGrid');
+  grid.innerHTML = '';
+  for (var i=0;i<7;i++){
+    var r = DAILY_REWARDS[i], dayNum = i+1;
+    var isClaimed = info.displayDay>dayNum || (!info.canClaim && dayNum===info.displayDay);
+    var isToday = info.canClaim && dayNum===info.displayDay;
+    var isFuture = dayNum>info.displayDay;
+    var div = document.createElement('div');
+    div.className = 'daily-day' + (isClaimed?' claimed':'') + (isToday?' today':'') + (isFuture?' future':'');
+    div.style.opacity = isFuture ? '0.5' : '1';
+    div.innerHTML = (isClaimed?'<div class="d-check">✓</div>':'') + '<div class="d-label">День ' + dayNum + '</div><div class="d-icon">' + (r.caseChance>=1?'🎁':'🪙') + '</div><div class="d-reward">+' + r.coins + '</div>';
+    grid.appendChild(div);
+  }
+  $('dailyStreakInfo').textContent = save.dailyStreak>0 ? '🔥 Серия: ' + Math.min(save.dailyStreak,7) + ' из 7' : '';
+  var statusEl = $('dailyStatus'), claimBtn = $('btnClaimDaily');
+  if (info.canClaim){
+    var rr = DAILY_REWARDS[info.displayDay-1];
+    statusEl.textContent = 'Сегодня: +' + rr.coins + ' 🪙' + (rr.caseChance>0 ? ' и шанс ' + Math.round(rr.caseChance*100) + '% на кейс' : '');
+    claimBtn.disabled = false; claimBtn.textContent = '🎁 Забрать награду';
+  } else {
+    var msLeft = info.nextClaimAt - Date.now();
+    var h = Math.floor(msLeft/(60*60*1000)), m = Math.floor((msLeft%(60*60*1000))/(60*1000));
+    statusEl.textContent = 'Следующая награда через ' + h + ' ч ' + m + ' мин';
+    claimBtn.disabled = true; claimBtn.textContent = '✓ Награда получена';
+  }
+  refreshDailyCoins();
+}
+function claimDaily(){
+  var info = getDailyInfo();
+  if (!info.canClaim){ toast('Уже забрано сегодня'); return; }
+  var r = DAILY_REWARDS[info.displayDay-1];
+  var now = Date.now(), DAY_MS = 24*60*60*1000;
+  if (save.lastDailyClaim && (now-save.lastDailyClaim)>2*DAY_MS) save.dailyStreak = 0;
+  save.dailyStreak = Math.min(save.dailyStreak+1,7);
+  save.lastDailyClaim = now;
+  save.coins += r.coins; save.stats.totalCoinsAllTime += r.coins;
+  addRating(10);
+  if (r.caseChance>0 && Math.random()<r.caseChance){
+    var starter = CASES.find(function(c){return c.id==='starter';});
+    var prize = rollSkin(starter.probs);
+    if (save.ownedSkins.indexOf(prize.id)<0){ save.ownedSkins.push(prize.id); toast('🎁 +' + r.coins + ' 🪙 и скин «' + prize.name + '»!', 3500); }
+    else { save.coins += 25; toast('🎁 +' + r.coins + ' 🪙 и дубликат → +25 🪙!', 3500); }
+  } else toast('🎁 +' + r.coins + ' 🪙 получено!');
+  persist(); AudioSys.reward(); renderDaily(); updateMenuBadges();
+  checkAchievements();
+}
+
+var MISSION_POOL = [
+  {id:'coins_15', type:'coinsRun', target:15, reward:50, icon:'🪙', title:'Собери 15 монет', desc:'За один забег'},
+  {id:'height_100', type:'height', target:100, reward:60, icon:'📏', title:'Поднимись на 100 м', desc:'За забег'},
+  {id:'jumps_30', type:'jumps', target:30, reward:50, icon:'🦘', title:'30 прыжков', desc:'Всего'},
+  {id:'runs_3', type:'runs', target:3, reward:60, icon:'🎮', title:'3 забега', desc:'Просто играй'},
+  {id:'coins_30', type:'coinsRun', target:30, reward:120, icon:'💰', title:'Собери 30 монет', desc:'За один забег'},
+  {id:'height_200', type:'height', target:200, reward:150, icon:'🏔️', title:'Поднимись на 200 м', desc:'За забег'},
+  {id:'coins_total_100', type:'coinsTotal', target:100, reward:130, icon:'🤑', title:'100 монет всего', desc:'За сегодня'},
+  {id:'jumps_100', type:'jumps', target:100, reward:140, icon:'🚀', title:'100 прыжков', desc:'За день'},
+  {id:'coins_50', type:'coinsRun', target:50, reward:250, icon:'💎', title:'Собери 50 монет', desc:'За один забег'},
+  {id:'height_350', type:'height', target:350, reward:300, icon:'🌋', title:'Поднимись на 350 м', desc:'За забег'},
+  {id:'runs_10', type:'runs', target:10, reward:200, icon:'🎯', title:'10 забегов', desc:'Просто играй'},
+  {id:'coins_total_300', type:'coinsTotal', target:300, reward:350, icon:'🏦', title:'300 монет всего', desc:'За сегодня'},
+  {id:'height_500', type:'height', target:500, reward:500, icon:'👑', title:'Поднимись на 500 м', desc:'Легендарная высота!'}
+];
+var SESSION_QUESTS = [
+  {id:'s_run_3', type:'runs', target:3, reward:40, xp:15, icon:'🎮', title:'Сыграй 3 забега подряд', desc:'Быстрая цель'},
+  {id:'s_height_150', type:'height', target:150, reward:60, xp:25, icon:'📏', title:'Поднимись на 150 м', desc:'Один хороший забег'},
+  {id:'s_coins_25', type:'coinsRun', target:25, reward:50, xp:20, icon:'🪙', title:'Собери 25 монет', desc:'За один забег'},
+  {id:'s_jumps_50', type:'jumps', target:50, reward:45, xp:18, icon:'🦘', title:'50 прыжков', desc:'Просто прыгай'},
+  {id:'s_height_250', type:'height', target:250, reward:100, xp:40, icon:'🏔️', title:'Поднимись на 250 м', desc:'Сложнее'},
+  {id:'s_coins_40', type:'coinsRun', target:40, reward:110, xp:45, icon:'💰', title:'Собери 40 монет', desc:'Требует ловкости'}
+];
+var sessionQuest = null, sessionQuestStart = 0;
+var SESSION_QUEST_DURATION = 30*60*1000;
+
+function ensureSessionQuest(){
+  var now = Date.now();
+  if (!sessionQuest || now-sessionQuestStart > SESSION_QUEST_DURATION){
+    var src = SESSION_QUESTS[Math.floor(Math.random()*SESSION_QUESTS.length)];
+    sessionQuest = { id:src.id, type:src.type, target:src.target, reward:src.reward, xp:src.xp, icon:src.icon, title:src.title, desc:src.desc, progress:0, claimed:false };
+    sessionQuestStart = now;
+  }
+}
+function checkMissionsReset(){
+  var now = Date.now();
+  if (!save.missionsResetAt || now >= save.missionsResetAt || save.missions.length===0) generateMissions();
+  ensureSessionQuest();
+}
+function generateMissions(){
+  var easy = MISSION_POOL.filter(function(m){return m.reward<=100;});
+  var medium = MISSION_POOL.filter(function(m){return m.reward>100 && m.reward<=250;});
+  var hard = MISSION_POOL.filter(function(m){return m.reward>250;});
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  var chosen = [], used = {};
+  function tryAdd(pool){
+    for (var a=0;a<10;a++){
+      var m = pick(pool);
+      if (!used[m.id]){ used[m.id] = true; chosen.push({id:m.id,type:m.type,target:m.target,reward:m.reward,icon:m.icon,title:m.title,desc:m.desc,progress:0,claimed:false}); return; }
+    }
+  }
+  tryAdd(easy); tryAdd(medium); tryAdd(hard);
+  save.missions = chosen;
+  save.missionsResetAt = Date.now() + 24*60*60*1000;
+  persist();
+}
+function renderMissions(){
+  checkMissionsReset();
+  var list = $('missionList'); list.innerHTML = '';
+  if (sessionQuest){
+    var done = sessionQuest.progress >= sessionQuest.target;
+    var timeLeft = Math.max(0, SESSION_QUEST_DURATION-(Date.now()-sessionQuestStart));
+    var minLeft = Math.ceil(timeLeft/60000);
+    var item = document.createElement('div');
+    item.className = 'mission-item' + (done?' done':'') + (sessionQuest.claimed?' claimed':'');
+    item.style.borderColor = '#ff9a3c';
+    var pct = Math.min(100, Math.floor(sessionQuest.progress/sessionQuest.target*100));
+    item.innerHTML = '<div class="m-icon">⚡</div><div class="m-body"><div class="m-title">' + sessionQuest.title + ' <span style="color:#ff9a3c;font-size:10px">(сессия · ' + minLeft + ' мин)</span></div><div class="m-desc">' + (done ? (sessionQuest.claimed?'✅ Получено':'🎉 Готово!') : sessionQuest.desc) + '</div><div class="m-progress-bar"><div class="m-progress-fill" style="width:' + pct + '%"></div></div><div class="m-desc" style="margin-top:2px">' + sessionQuest.progress + ' / ' + sessionQuest.target + '</div></div><div class="m-reward">🪙 ' + sessionQuest.reward + '<br><span style="font-size:10px;color:#a86bff">+' + sessionQuest.xp + ' XP</span></div>' + (done && !sessionQuest.claimed ? '<button class="btn green m-btn" data-sid="1">Забрать</button>' : '');
+    list.appendChild(item);
+  }
+  if (!save.missions.length){ return; }
+  for (var i=0;i<save.missions.length;i++){
+    var m = save.missions[i];
+    var done2 = m.progress >= m.target;
+    var item2 = document.createElement('div');
+    item2.className = 'mission-item' + (done2?' done':'') + (m.claimed?' claimed':'');
+    var pct2 = Math.min(100, Math.floor(m.progress/m.target*100));
+    var xpReward = Math.floor(m.reward/2);
+    item2.innerHTML = '<div class="m-icon">' + m.icon + '</div><div class="m-body"><div class="m-title">' + m.title + '</div><div class="m-desc">' + (done2 ? (m.claimed?'✅ Получено':'🎉 Готово!') : m.desc) + '</div><div class="m-progress-bar"><div class="m-progress-fill" style="width:' + pct2 + '%"></div></div><div class="m-desc" style="margin-top:2px">' + m.progress + ' / ' + m.target + '</div></div><div class="m-reward">🪙 ' + m.reward + '<br><span style="font-size:10px;color:#a86bff">+' + xpReward + ' XP</span></div>' + (done2 && !m.claimed ? '<button class="btn green m-btn" data-mid="' + m.id + '">Забрать</button>' : '');
+    list.appendChild(item2);
+  }
+  Array.prototype.forEach.call(list.querySelectorAll('button[data-mid]'), function(btn){ btn.onclick = function(){ claimMission(btn.dataset.mid); }; });
+  Array.prototype.forEach.call(list.querySelectorAll('button[data-sid]'), function(btn){ btn.onclick = function(){ claimSessionQuest(); }; });
+  var msLeft = save.missionsResetAt - Date.now();
+  if (msLeft > 0){
+    var h = Math.floor(msLeft/(60*60*1000)), mm = Math.floor((msLeft%(60*60*1000))/(60*1000));
+    $('missionsTimer').textContent = 'Новые миссии через ' + h + ' ч ' + mm + ' мин';
+  }
+  refreshMissionsCoins();
+}
+function claimMission(mid){
+  var m = null;
+  for (var i=0;i<save.missions.length;i++) if (save.missions[i].id===mid) m = save.missions[i];
+  if (!m || m.claimed || m.progress<m.target) return;
+  m.claimed = true;
+  save.coins += m.reward; save.stats.totalCoinsAllTime += m.reward;
+  addXp(Math.floor(m.reward/2));
+  addRating(Math.floor(m.reward/10));
+  persist(); AudioSys.reward();
+  toast('✅ +' + m.reward + ' 🪙 +' + Math.floor(m.reward/2) + ' XP');
+  renderMissions(); updateMenuBadges();
+  checkAchievements();
+}
+function claimSessionQuest(){
+  if (!sessionQuest || sessionQuest.claimed || sessionQuest.progress<sessionQuest.target) return;
+  sessionQuest.claimed = true;
+  save.coins += sessionQuest.reward;
+  addXp(sessionQuest.xp);
+  addRating(Math.floor(sessionQuest.reward/10));
+  persist(); AudioSys.reward();
+  toast('⚡ +' + sessionQuest.reward + ' 🪙 +' + sessionQuest.xp + ' XP');
+  renderMissions();
+  checkAchievements();
+}
+function updateMissionProgress(type, value, isIncrement){
+  var changed = false;
+  for (var i=0;i<save.missions.length;i++){
+    var m = save.missions[i];
+    if (m.claimed || m.type !== type) continue;
+    if (isIncrement){ m.progress = Math.min(m.target, m.progress+value); changed = true; }
+    else if (value > m.progress){ m.progress = Math.min(m.target, value); changed = true; }
+  }
+  if (sessionQuest && !sessionQuest.claimed && sessionQuest.type===type){
+    if (isIncrement) sessionQuest.progress = Math.min(sessionQuest.target, sessionQuest.progress+value);
+    else if (value > sessionQuest.progress) sessionQuest.progress = Math.min(sessionQuest.target, value);
+  }
+  if (changed) persist();
+}
+
+function renderSeasonScreen(){
+  var season = getCurrentSeason(), left = getSeasonTimeLeft();
+  $('seasonScreenDesc').textContent = season.icon + ' ' + season.name + ': ' + season.desc;
+  $('seasonScreenTimer').textContent = left.expired ? 'Сезон завершён' : 'До конца: ' + left.h + ' ч ' + left.m + ' мин';
+  var claimed = save.seasonClaimed[season.id];
+  $('seasonScreenReward').innerHTML = claimed ? '✅ Сезонная награда получена' : 'Награда за сезон: <b style="color:#ffd93b">🪙 ' + season.reward + '</b>';
+  var btn = $('btnClaimSeason');
+  btn.disabled = claimed || left.expired;
+  btn.textContent = claimed ? '✓ Получено' : (left.expired ? 'Сезон завершён' : 'Забрать 🪙 ' + season.reward);
+}
+function claimSeason(){
+  var season = getCurrentSeason();
+  if (save.seasonClaimed[season.id]){ toast('Уже получено'); return; }
+  var left = getSeasonTimeLeft();
+  if (left.expired){ toast('Сезон завершён'); return; }
+  save.seasonClaimed[season.id] = true;
+  save.coins += season.reward; save.stats.totalCoinsAllTime += season.reward;
+  addRating(30);
+  persist(); AudioSys.reward();
+  toast('🎃 +' + season.reward + ' 🪙 за сезон!');
+  renderSeasonScreen(); updateMenuBadges();
+  checkAchievements();
+}
+
+function renderTournament(){
+  var t = save.tournament;
+  var statusEl = $('tournamentStatus');
+  if (t.active){
+    statusEl.textContent = 'Гонка ' + (t.races+1) + ' из 3. Сумма очков: ' + t.totalScore;
+    $('btnTournamentStart').textContent = t.races > 0 ? 'Продолжить турнир' : 'Начать турнир';
+  } else {
+    statusEl.textContent = 'Турнир не начат. 3 гонки, сумма очков = место.';
+    $('btnTournamentStart').textContent = 'Начать турнир';
+  }
+}
+
+function renderBiomes(){
+  var grid = $('biomeGrid'); grid.innerHTML = '';
+  for (var i=0;i<BIOMES.length;i++){
+    (function(b){
+      var owned = save.ownedBiomes.indexOf(b.id)>=0;
+      var selected = save.selectedBiome === b.id;
+      var levelLocked = save.level < b.unlockLevel;
+      var free = save.biomesFreeTest && !owned && !levelLocked;
+      var card = document.createElement('div');
+      card.className = 'biome-card' + (selected?' selected':'') + (levelLocked?' locked':'');
+      var bgGrad = 'linear-gradient(180deg,' + b.bg[0] + ',' + b.bg[1] + ',' + b.bg[2] + ')';
+      var platGrad = 'linear-gradient(180deg,' + b.platform[0] + ',' + b.platform[1] + ')';
+      var coinGrad = 'radial-gradient(circle at 35% 35%,' + b.coin[0] + ',' + b.coin[1] + ' 60%,' + b.coin[2] + ')';
+      var btnHtml;
+      if (selected) btnHtml = '<button class="btn gray" disabled>✓</button>';
+      else if (levelLocked) btnHtml = '<button class="btn gray" disabled>🔒 Ур. ' + b.unlockLevel + '</button>';
+      else if (owned) btnHtml = '<button class="btn green" data-biome="' + b.id + '" data-action="apply">Применить</button>';
+      else if (free) btnHtml = '<button class="btn btn-test" data-biome="' + b.id + '" data-action="test">Тест</button>';
+      else btnHtml = '<button class="btn green" data-biome="' + b.id + '" data-action="buy">Купить</button>';
+      card.innerHTML = '<div class="biome-preview" style="background:' + bgGrad + '"><div class="bp-platform" style="width:60%;left:20%;background:' + platGrad + '"></div><div class="bp-coin" style="left:46%;background:' + coinGrad + '"></div></div><div class="biome-info"><div class="biome-name">' + b.icon + ' ' + b.name + '</div><div class="biome-desc">' + b.desc + '</div><div class="biome-bottom"><div class="biome-price ' + (b.price===0?'free':'') + '">' + (levelLocked ? '🔒 Ур. ' + b.unlockLevel : (b.price===0 ? 'Бесплатно' : '🪙 ' + b.price)) + '</div>' + btnHtml + '</div></div>';
+      grid.appendChild(card);
+    })(BIOMES[i]);
+  }
+  Array.prototype.forEach.call(grid.querySelectorAll('button[data-biome]'), function(btn){
+    btn.onclick = function(e){
+      e.stopPropagation();
+      var id = btn.dataset.biome, action = btn.dataset.action;
+      if (action==='apply') applyBiome(id);
+      else if (action==='test') testBiome(id);
+      else if (action==='buy') buyBiome(id);
+    };
+  });
+  refreshBiomesCoins();
+}
+function applyBiome(id){ save.selectedBiome = id; persist(); renderBiomes(); AudioSys.purchase(); toast('🌍 Биом «' + getBiome(id).name + '» применён!'); }
+function testBiome(id){
+  var b = getBiome(id);
+  if (save.level < b.unlockLevel){ toast('🔒 Нужен уровень ' + b.unlockLevel); return; }
+  if (save.ownedBiomes.indexOf(id)<0) save.ownedBiomes.push(id);
+  save.selectedBiome = id; persist(); renderBiomes(); AudioSys.purchase();
+  toast('🎁 Тест: биом «' + b.name + '» открыт!');
+}
+function buyBiome(id){
+  var b = getBiome(id);
+  if (save.level < b.unlockLevel){ toast('🔒 Нужен уровень ' + b.unlockLevel); return; }
+  if (save.ownedBiomes.indexOf(id)>=0){ applyBiome(id); return; }
+  if (save.coins < b.price){ AudioSys.denied(); toast('❌ Не хватает: нужно 🪙 ' + b.price); return; }
+  save.coins -= b.price; save.ownedBiomes.push(id); save.selectedBiome = id; persist(); renderBiomes(); AudioSys.purchase();
+  addRating(5);
+  toast('✅ Биом «' + b.name + '» куплен!');
+}
+
+function renderCases(){
+  var grid = $('caseGrid'); grid.innerHTML = '';
+  for (var i=0;i<CASES.length;i++){
+    (function(c){
+      var card = document.createElement('div');
+      card.className = 'case-card ' + c.rarityClass;
+      var canBuy = save.coins >= c.price;
+      card.innerHTML = '<div class="case-icon">' + c.icon + '</div><div class="case-title">' + c.name + '</div><div class="case-desc">' + c.desc + '</div><div class="case-price">🪙 ' + c.price + '</div><button class="btn"' + (canBuy?'':' disabled') + '>Открыть</button>';
+      card.querySelector('button').onclick = function(e){ e.stopPropagation(); openCase(c); };
+      grid.appendChild(card);
+    })(CASES[i]);
+  }
+  refreshCasesCoins();
+}
+var caseBusy = false;
+function openCase(caseData){
+  if (caseBusy) return;
+  if (save.coins < caseData.price){ AudioSys.denied(); toast('❌ Не хватает: нужно 🪙 ' + caseData.price); return; }
+  caseBusy = true; save.coins -= caseData.price; persist(); refreshCasesCoins(); renderCases(); AudioSys.caseOpen();
+  var modal = $('caseModal'), reel = $('reel'), resultBlock = $('caseResult'), skipBtn = $('btnSkipCase');
+  modal.classList.remove('hidden');
+  $('caseModalTitle').textContent = 'Открываем ' + caseData.name.toLowerCase() + '…';
+  resultBlock.style.display = 'none'; skipBtn.style.display = 'none';
+  var prize = rollSkin(caseData.probs);
+  var isDupe = save.ownedSkins.indexOf(prize.id)>=0;
+  var REEL_LEN = 42, WIN_INDEX = 35, items = [];
+  for (var i=0;i<REEL_LEN;i++) items.push(i===WIN_INDEX ? prize : rollSkin(caseData.probs));
+  reel.innerHTML = '';
+  items.forEach(function(skin){
+    var el = document.createElement('div');
+    el.className = 'reel-item rarity-' + skin.rarity;
+    el.innerHTML = '<div class="ri-icon">' + skin.icon + '</div><div class="ri-name">' + skin.name + '</div>';
+    reel.appendChild(el);
+  });
+  var ITEM_W = 110;
+  var targetOffset = WIN_INDEX*ITEM_W + ITEM_W/2 - reel.parentElement.clientWidth/2;
+  reel.style.transition = 'none'; reel.style.transform = 'translateX(0px)';
+  var tickCount = 0;
+  var tickInterval = setInterval(function(){ AudioSys.caseTick(); tickCount++; if (tickCount>=20) clearInterval(tickInterval); }, 60);
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      reel.style.transition = 'transform 4.2s cubic-bezier(.15,.85,.25,1)';
+      reel.style.transform = 'translateX(-' + targetOffset + 'px)';
+      var onEnd = function(){
+        reel.removeEventListener('transitionend', onEnd);
+        clearInterval(tickInterval);
+        AudioSys.caseReveal(prize.rarity);
+        showCaseResult(prize, isDupe, caseData);
+      };
+      reel.addEventListener('transitionend', onEnd);
+      setTimeout(function(){
+        if (resultBlock.style.display === 'none'){
+          clearInterval(tickInterval);
+          AudioSys.caseReveal(prize.rarity);
+          showCaseResult(prize, isDupe, caseData);
+        }
+      }, 4500);
+    });
+  });
+  skipBtn.style.display = '';
+  skipBtn.onclick = function(){
+    reel.style.transition = 'transform 0.3s ease-out';
+    reel.style.transform = 'translateX(-' + targetOffset + 'px)';
+    setTimeout(function(){
+      clearInterval(tickInterval);
+      AudioSys.caseReveal(prize.rarity);
+      showCaseResult(prize, isDupe, caseData);
+    }, 320);
+    skipBtn.style.display = 'none';
+  };
+  if (!isDupe){ save.ownedSkins.push(prize.id); persist(); }
+  else { var comp = Math.max(5, Math.round(caseData.price*0.25)); save.coins += comp; persist(); }
+  checkAchievements();
+}
+function showCaseResult(prize, isDupe, caseData){
+  $('caseModalTitle').textContent = 'Твой скин:';
+  $('caseResult').style.display = ''; $('btnSkipCase').style.display = 'none';
+  var labels = {common:'Обычный', rare:'Редкий', epic:'Эпический', legendary:'Легендарный'};
+  var colors = {common:'#cfe0ff', rare:'#9fc3ff', epic:'#c4a4ff', legendary:'#ffd93b'};
+  $('resIcon').textContent = prize.icon; $('resIcon').style.color = colors[prize.rarity];
+  $('resRarity').textContent = labels[prize.rarity]; $('resRarity').style.color = colors[prize.rarity];
+  $('resName').textContent = prize.name; $('resName').style.color = colors[prize.rarity];
+  if (isDupe){ var comp = Math.max(5, Math.round(caseData.price*0.25)); $('resDupe').textContent = 'Дубликат! +🪙 ' + comp; $('resDupe').style.display = ''; }
+  else $('resDupe').style.display = 'none';
+  $('btnWear').onclick = function(){ save.selectedSkin = prize.id; persist(); toast('👕 Надет: ' + prize.name); closeCaseModal(); };
+  $('btnCloseCase').onclick = closeCaseModal;
+}
+function closeCaseModal(){ $('caseModal').classList.add('hidden'); caseBusy = false; refreshCasesCoins(); renderCases(); }
+
+function renderSkins(){
+  var grid = $('skinsGrid'); grid.innerHTML = '';
+  var colors = {common:'#cfe0ff', rare:'#9fc3ff', epic:'#c4a4ff', legendary:'#ffd93b'};
+  var labels = {common:'Обычный', rare:'Редкий', epic:'Эпический', legendary:'Легендарный'};
+  for (var i=0;i<SKINS.length;i++){
+    (function(skin){
+      var owned = save.ownedSkins.indexOf(skin.id)>=0;
+      var selected = save.selectedSkin === skin.id;
+      var card = document.createElement('div');
+      card.className = 'skin-card' + (selected?' selected':'') + (owned?'':' locked');
+      card.innerHTML = '<div class="skin-avatar" style="background:linear-gradient(160deg,' + skin.top + ',' + skin.bottom + ')">' + skin.icon + '</div><div class="skin-name">' + skin.name + '</div><div class="skin-rarity" style="color:' + colors[skin.rarity] + '">' + labels[skin.rarity] + '</div>';
+      if (owned && !selected){
+        card.onclick = function(){ save.selectedSkin = skin.id; persist(); renderSkins(); AudioSys.purchase(); toast('👕 Надет: ' + skin.name); };
+      }
+      grid.appendChild(card);
+    })(SKINS[i]);
+  }
+}
+
+var NPC_LINES = ['Заходи, герой! У меня есть всё, чтобы ты взлетел выше всех.','Вижу, ты растёшь. Возьми что-нибудь стоящее!','Слышал, ты рекорд побил? Так держать!','Осторожнее с хрупкими платформами.','Монеты — сила. Копи и покупай!'];
+function renderShop(){
+  $('shopCoins').textContent = 'Баланс: 🪙 ' + save.coins;
+  $('npcText').textContent = NPC_LINES[Math.floor(Math.random()*NPC_LINES.length)];
+  var grid = $('shopGrid'); grid.innerHTML = '';
+  for (var i=0;i<SHOP_ITEMS.length;i++){
+    (function(item){
+      var owned = save.upgrades[item.id];
+      var levelLocked = save.level < item.unlockLevel;
+      var card = document.createElement('div');
+      card.className = 'card' + (owned?' owned':'') + (levelLocked?' locked':'');
+      var priceText = levelLocked ? '🔒 Ур. ' + item.unlockLevel : item.freeTest ? (owned?'Куплено':'Бесплатно (тест)') : (owned?'Куплено':'🪙 ' + item.price);
+      card.innerHTML = '<div class="icon">' + item.icon + '</div><div class="title">' + item.title + '</div><div class="desc">' + item.desc + '</div><div class="price">' + priceText + '</div><button class="btn ' + (owned?'gray':levelLocked?'gray':(item.price>300?'purple':'green')) + '">' + (owned?'✓ Куплено':levelLocked?'🔒 Ур. ' + item.unlockLevel:'Купить') + '</button>';
+      var btn = card.querySelector('button');
+      if (!owned && !levelLocked) btn.onclick = function(){ buyUpgrade(item); };
+      grid.appendChild(card);
+    })(SHOP_ITEMS[i]);
+  }
+}
+function buyUpgrade(item){
+  if (save.upgrades[item.id]) return;
+  if (save.level < item.unlockLevel){ AudioSys.denied(); toast('🔒 Нужен уровень ' + item.unlockLevel); return; }
+  if (!item.freeTest && save.coins < item.price){ AudioSys.denied(); toast('❌ Не хватает: нужно 🪙 ' + item.price); return; }
+  if (!item.freeTest) save.coins -= item.price;
+  save.upgrades[item.id] = true;
+  persist(); AudioSys.purchase();
+  addRating(3);
+  toast('✅ ' + item.title + ' — куплено!');
+  renderShop(); refreshMenuCoins();
+}
+
+function refreshToggles(){
+  Array.prototype.forEach.call(document.querySelectorAll('#qualityToggle button'), function(b){ b.classList.toggle('active', b.dataset.q === save.quality); });
+  Array.prototype.forEach.call(document.querySelectorAll('#soundToggle button'), function(b){ b.classList.toggle('active', (b.dataset.s==='on') === (save.sound!==false)); });
+  Array.prototype.forEach.call(document.querySelectorAll('#musicToggle button'), function(b){ b.classList.toggle('active', (b.dataset.m==='on') === (save.music!==false)); });
+  Array.prototype.forEach.call(document.querySelectorAll('#shakeToggle button'), function(b){ b.classList.toggle('active', (b.dataset.sh==='on') === (save.shake!==false)); });
+  Array.prototype.forEach.call(document.querySelectorAll('#hintToggle button'), function(b){ b.classList.toggle('active', (b.dataset.h==='on') === (save.hints!==false)); });
+  Array.prototype.forEach.call(document.querySelectorAll('#bestToggle button'), function(b){ b.classList.toggle('active', (b.dataset.b==='on') === (save.showBest!==false)); });
+}
+
+var TUT_STEPS = [
+  {icon:'🎮', title:'Добро пожаловать!', text:'Ты — прыгучий герой. Поднимайся по платформам, собирай монетки и не падай в пропасть!'},
+  {icon:'🕹️', title:'Управление', text:'← и → — двигаться. ↑ или Пробел — прыжок.'},
+  {icon:'🏁', title:'Режимы', text:'Обычный забег, гонка с ботами и таймер — выбирай в меню.'},
+  {icon:'💰', title:'Монеты, XP, рейтинг', text:'Монеты — улучшения. XP — уровни. Рейтинг растёт за всё подряд.'},
+  {icon:'🎁', title:'Награды и кейсы', text:'Ежедневки, колесо, миссии, кейсы и достижения. Удачи!'}
+];
+var tutStep = 0;
+function showTutorial(){ tutStep = 0; $('tutorialOverlay').classList.remove('hidden'); renderTutStep(); }
+function renderTutStep(){
+  var s = TUT_STEPS[tutStep];
+  $('tutIcon').textContent = s.icon; $('tutTitle').textContent = s.title; $('tutText').textContent = s.text;
+  var dots = $('tutDots'); dots.innerHTML = '';
+  for (var i=0;i<TUT_STEPS.length;i++){
+    var d = document.createElement('div');
+    d.className = 'tut-dot' + (i===tutStep?' active':'');
+    dots.appendChild(d);
+  }
+  $('tutBtn').textContent = tutStep === TUT_STEPS.length-1 ? 'Начать игру!' : 'Далее';
+}
+
+var G = {
+  mode:'normal', running:false, paused:false, W:0, H:0,
+  player:null, platforms:[], coins:[], particles:[], bots:[],
+  cameraY:0, score:0, coinsThisRun:0,
+  coinCombo:0, comboResetTimer:0,
+  keys:{left:false,right:false},
+  lastTime:0, animationId:null, wasOnGround:true,
+  jumpsUsed:0, maxJumps:1, shieldUsed:false, livesLeft:1, shakeAmount:0,
+  xpThisRun:0, animTime:0, squash:0, recordHintShown:false,
+  raceTimeLeft:60, raceStarted:false, raceEnded:false, raceCountdownActive:false, raceStartTime:0,
+  deathTimer:0, invuln:0,
+  modeTimer:0
+};
+var PLAYER_W = 34, PLAYER_H = 44, PLATFORM_H = 18, COIN_R = 11, MAGNET_RADIUS = 90;
+var MAX_GAP = 130, MIN_GAP = 80, RACE_DURATION = 60, TIMER_TIME = 60;
+
+var BOT_COLORS = [
+  {name:'Красный', top:'#ff8a8a', bottom:'#e63946', color:'#ff5c5c'},
+  {name:'Зелёный', top:'#8be88b', bottom:'#2ea043', color:'#4cd964'},
+  {name:'Фиолетовый', top:'#c4a4ff', bottom:'#7c3aed', color:'#a86bff'}
+];
+var RACE_BOT_NAMES = ['Прыгун','Молния','Вихрь'];
+
+function resize(){
+  var rect = canvas.getBoundingClientRect();
+  var dpr = Math.min(window.devicePixelRatio||1, 2);
+  canvas.width = Math.round(rect.width*dpr); canvas.height = Math.round(rect.height*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  G.W = rect.width; G.H = rect.height;
+}
+window.addEventListener('resize', resize);
+
+function makePlatform(y,x,w,type){ return {x:x, y:y, w:w, h:PLATFORM_H, type:type, state:'idle', crackTimer:0, crackDelay:2+Math.random(), fallVy:0, shake:0}; }
+function spawnCoinsOn(platform, count){
+  var spacing = 26, totalW = (count-1)*spacing;
+  var startX = platform.x + platform.w/2 - totalW/2;
+  var baseY = platform.y - 34;
+  for (var i=0;i<count;i++){
+    G.coins.push({x:startX+i*spacing, y:baseY, r:COIN_R, taken:false, bob:Math.random()*Math.PI*2, phase:i*0.6});
+  }
+}
+function rollCoinCount(isFragile){
+  var r = Math.random();
+  if (isFragile){ if (r<0.35) return 3; if (r<0.7) return 2; return 1; }
+  if (r<0.18) return 3; if (r<0.5) return 2; return 1;
+}
+function generateUpTo(targetY){
+  var topY = G.platforms.length ? Math.min.apply(null, G.platforms.map(function(p){return p.y;})) : 0;
+  while (topY > targetY){
+    var gap = MIN_GAP + Math.random()*(MAX_GAP-MIN_GAP);
+    var newY = topY - gap;
+    var prev = G.platforms.reduce(function(a,b){return a.y < b.y ? a : b;}, G.platforms[0] || {x:G.W/2});
+    var maxDx = Math.min(G.W*0.45, 220);
+    var px = prev.x + (Math.random()*2-1)*maxDx;
+    var w = 70 + Math.random()*70;
+    px = Math.max(10, Math.min(G.W-w-10, px));
+    var type = 'normal';
+    if (save.stats.totalRuns >= 2 && G.platforms.length > 2 && Math.random() < 0.3) type = 'fragile';
+    var finalW = type === 'fragile' ? Math.max(w,90) : w;
+    var platform = makePlatform(newY, px, finalW, type);
+    G.platforms.push(platform);
+    topY = newY;
+    if (Math.random() < 0.9){
+      var count = rollCoinCount(type==='fragile');
+      var maxFit = Math.max(1, Math.floor((finalW-20)/26)+1);
+      count = Math.min(count, maxFit, 3);
+      spawnCoinsOn(platform, count);
+    }
+  }
+}
+function makeBot(colorObj, name, startX, startY){
+  return {
+    isBot:true, name:name, top:colorObj.top, bottom:colorObj.bottom, color:colorObj.color,
+    x:startX, y:startY, w:PLAYER_W, h:PLAYER_H, vx:0, vy:0, onGround:true,
+    targetX:startX, thinkTimer:0, squash:0, animTime:0, alive:true, score:0, jumpsUsed:0, maxJumps:1, face:1
+  };
+}
+
+function resetWorld(){
+  G.platforms = []; G.coins = []; G.particles = []; G.bots = [];
+  G.cameraY = 0; G.score = 0; G.coinsThisRun = 0; G.xpThisRun = 0;
+  G.coinCombo = 0; G.comboResetTimer = 0; G.wasOnGround = true; G.shakeAmount = 0;
+  G.maxJumps = save.upgrades.doubleJump ? 2 : 1;
+  G.jumpsUsed = 0; G.shieldUsed = false; G.livesLeft = save.upgrades.extraLife ? 2 : 1;
+  G.animTime = 0; G.squash = 0; G.recordHintShown = false;
+  G.raceTimeLeft = RACE_DURATION; G.raceStarted = false; G.raceEnded = false; G.raceCountdownActive = false;
+  G.deathTimer = 0; G.invuln = 0; G.modeTimer = 0;
+  var startW = 160, startX = (G.W-startW)/2, startY = G.H - 80;
+  G.platforms.push(makePlatform(startY, startX, startW, 'normal'));
+  G.player = {x:startX+startW/2-PLAYER_W/2, y:startY-PLAYER_H, vx:0, vy:0, w:PLAYER_W, h:PLAYER_H, onGround:true, face:1, jumpsUsed:0, maxJumps:G.maxJumps, squash:0, animTime:0, invuln:0};
+  if (G.mode === 'race' || G.mode === 'tournament'){
+    for (var i=0;i<3;i++){
+      var col = BOT_COLORS[i];
+      var bot = makeBot(col, RACE_BOT_NAMES[i], 30+i*100, startY-PLAYER_H);
+      if (i===2) bot.maxJumps = 2;
+      G.bots.push(bot);
+    }
+  }
+  generateUpTo(-G.H*2);
+  updateHud(); updateHudChips();
+  if (G.mode === 'race' || G.mode === 'tournament') updateRaceHud();
+}
+
+function updateHud(){
+  $('hudCoins').textContent = '🪙 ' + (save.coins + G.coinsThisRun);
+  $('hudScore').textContent = G.score + ' м';
+  $('hudXp').textContent = '⭐ ' + (save.xp + G.xpThisRun);
+}
+function updateHudChips(){
+  $('hudBoost').style.display = save.upgrades.coinBoost ? '' : 'none';
+  if (save.upgrades.extraLife){ $('hudLives').style.display = ''; $('hudLives').textContent = '❤️ ' + G.livesLeft; }
+  else $('hudLives').style.display = 'none';
+}
+function updateRaceHud(){
+  var rows = $('raceHudRows');
+  rows.innerHTML = '';
+  var participants = [{name:save.playerName||'Ты', score:G.score, color:'#ffd93b', you:true}];
+  for (var i=0;i<G.bots.length;i++) participants.push({name:G.bots[i].name, score:G.bots[i].score, color:G.bots[i].color, you:false});
+  participants.sort(function(a,b){return b.score-a.score;});
+  participants.forEach(function(p){
+    var row = document.createElement('div');
+    row.className = 'rh-row' + (p.you?' you':'');
+    row.innerHTML = '<div class="rh-dot" style="background:' + p.color + '"></div><div class="rh-name">' + (p.you?'👤 ':'') + p.name + '</div><div class="rh-score">' + p.score + ' м</div>';
+    rows.appendChild(row);
+  });
+}
+
+function startGame(mode){
+  showScreen(null);
+  $('deathScreen').classList.add('hidden');
+  G.mode = mode || 'normal';
+  resize(); resetWorld();
+  G.running = true; G.paused = false;
+  G.lastTime = performance.now();
+  cancelAnimationFrame(G.animationId);
+  G.animationId = requestAnimationFrame(loop);
+  if (G.mode === 'race' || G.mode === 'tournament'){
+    $('raceTimer').classList.remove('hidden');
+    $('raceHud').classList.remove('hidden');
+    $('raceTimer').textContent = '3';
+    $('raceTimer').classList.add('urgent');
+    G.raceCountdownActive = true;
+    var count = 3;
+    AudioSys.raceCountdown(count);
+    var ci = setInterval(function(){
+      if (!G.running) { clearInterval(ci); return; }
+      count--;
+      if (count > 0){ $('raceTimer').textContent = count; AudioSys.raceCountdown(count); }
+      else if (count === 0){ $('raceTimer').textContent = 'GO!'; AudioSys.raceStart(); G.raceCountdownActive = false; G.raceStarted = true; G.raceStartTime = performance.now(); }
+      else { clearInterval(ci); }
+    }, 800);
+  } else if (G.mode === 'timer'){
+    $('raceTimer').classList.remove('hidden');
+    $('raceHud').classList.add('hidden');
+    $('raceTimer').textContent = TIMER_TIME + 'с';
+    $('raceTimer').classList.remove('urgent');
+  } else {
+    $('raceTimer').classList.add('hidden');
+    $('raceHud').classList.add('hidden');
+  }
+}
+
+function addPopup(x, y, text, color){
+  var el = document.createElement('div');
+  el.className = 'xp-popup'; el.textContent = text;
+  el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.color = color || '#ffd93b';
+  $('game').appendChild(el);
+  setTimeout(function(){ el.remove(); }, 1000);
+}
+function showRecordHint(text){
+  var el = $('recordHint');
+  el.textContent = text; el.classList.add('show');
+  clearTimeout(showRecordHint._t);
+  showRecordHint._t = setTimeout(function(){ el.classList.remove('show'); }, 2200);
+}
+
+function physicsStep(entity, dt, isBot){
+  var p = entity;
+  var moveSpeed = PHYSICS.moveSpeed, accel = PHYSICS.accel, friction = PHYSICS.friction;
+  if (isBot){
+    var dx = p.targetX - p.x;
+    if (Math.abs(dx) > 10){ p.vx += Math.sign(dx)*accel*dt; p.vx = Math.max(-moveSpeed, Math.min(moveSpeed, p.vx)); p.face = Math.sign(dx); }
+    else { var sg = Math.sign(p.vx); p.vx -= sg*friction*dt; if (Math.sign(p.vx)!==sg) p.vx = 0; }
+  } else {
+    var target = 0;
+    if (G.keys.left) target -= 1;
+    if (G.keys.right) target += 1;
+    if (target !== 0){ p.vx += target*accel*dt; p.vx = Math.max(-moveSpeed, Math.min(moveSpeed, p.vx)); p.face = target; }
+    else { var sg2 = Math.sign(p.vx); p.vx -= sg2*friction*dt; if (Math.sign(p.vx)!==sg2) p.vx = 0; }
+  }
+  var fallMul = (save.upgrades.slowFall && !isBot && p.vy>0) ? PHYSICS.slowFallMul : 1;
+  p.vy += PHYSICS.gravity*fallMul*dt;
+  p.x += p.vx*dt;
+  if (p.x < 0){ p.x = 0; p.vx = 0; }
+  if (p.x + p.w > G.W){ p.x = G.W-p.w; p.vx = 0; }
+  var prevBottom = p.y + p.h;
+  p.y += p.vy*dt;
+  p.onGround = false;
+  if (p.vy >= 0){
+    for (var i=0;i<G.platforms.length;i++){
+      var pl = G.platforms[i];
+      if (pl.state === 'falling' || pl.state === 'gone') continue;
+      var newBottom = p.y + p.h;
+      if (p.x + p.w > pl.x && p.x < pl.x + pl.w && prevBottom <= pl.y+6 && newBottom >= pl.y){
+        p.y = pl.y - p.h; p.vy = 0; p.onGround = true;
+        p.standingOn = pl;
+        break;
+      }
+    }
+  }
+  if (p.onGround){ p.jumpsUsed = 0; p.squash = Math.min(1, (p.squash||0) + dt*8); }
+  else p.squash = Math.max(0, (p.squash||0) - dt*4);
+  return p.onGround;
+}
+
+function botThink(bot, dt){
+  bot.thinkTimer -= dt;
+  if (bot.thinkTimer > 0) return;
+  bot.thinkTimer = 0.15 + Math.random()*0.2;
+  var above = G.platforms.filter(function(pl){
+    return pl.state !== 'gone' && pl.state !== 'falling' && pl.y < bot.y-20 && pl.y > bot.y-250;
+  });
+  if (!above.length) return;
+  above.sort(function(a,b){return b.y-a.y;});
+  var target = above[0];
+  bot.targetX = target.x + target.w/2 - bot.w/2;
+  if (bot.onGround){
+    var dx = Math.abs((target.x + target.w/2) - (bot.x + bot.w/2));
+    if (target.y < bot.y-30 && dx < 280){
+      bot.vy = -PHYSICS.baseJump * (0.95 + Math.random()*0.1);
+      bot.onGround = false; bot.jumpsUsed = 1;
+    }
+  } else if (bot.jumpsUsed < bot.maxJumps && bot.vy > 0){
+    if (Math.random() < 0.4){ bot.vy = -PHYSICS.baseJump*0.85; bot.jumpsUsed++; }
+  }
+}
+function updateBots(dt){
+  for (var i=0;i<G.bots.length;i++){
+    var bot = G.bots[i];
+    if (!bot.alive) continue;
+    botThink(bot, dt);
+    physicsStep(bot, dt, true);
+    bot.score = Math.max(bot.score, Math.floor(((G.H-80) - (bot.y - G.cameraY))/10));
+    if (bot.y - G.cameraY > G.H + 200){
+      var vis = G.platforms.filter(function(pl){return pl.state==='idle' && pl.y > G.cameraY && pl.y < G.cameraY+G.H;});
+      if (vis.length){ var pl = vis[Math.floor(Math.random()*vis.length)]; bot.x = pl.x + pl.w/2; bot.y = pl.y - bot.h - 30; bot.vy = 0; bot.vx = 0; }
+    }
+  }
+}
+
+function step(dt){
+  if (!G.running || G.paused) return;
+  if (G.mode === 'race' || G.mode === 'tournament'){
+    if (G.raceCountdownActive){
+      G.animTime += dt;
+      for (var bi=0;bi<G.bots.length;bi++) G.bots[bi].animTime += dt;
+      return;
+    }
+    if (G.raceStarted && !G.raceEnded){
+      G.raceTimeLeft -= dt;
+      if (G.raceTimeLeft <= 0){ G.raceTimeLeft = 0; G.raceEnded = true; endRace(); return; }
+      var secs = Math.ceil(G.raceTimeLeft);
+      $('raceTimer').textContent = secs + 'с';
+      $('raceTimer').classList.toggle('urgent', secs <= 10);
+    }
+  } else if (G.mode === 'timer'){
+    G.modeTimer += dt;
+    var left2 = Math.ceil(TIMER_TIME - G.modeTimer);
+    if (left2 <= 0){ endTimerMode(); return; }
+    $('raceTimer').textContent = left2 + 'с';
+    $('raceTimer').classList.toggle('urgent', left2 <= 10);
+  }
+
+  var p = G.player;
+  if (p.invuln > 0) p.invuln -= dt;
+  physicsStep(p, dt, false);
+  G.animTime += dt; p.animTime = G.animTime;
+  if (p.onGround && !G.wasOnGround) AudioSys.land();
+  G.wasOnGround = p.onGround;
+
+  if (G.mode === 'race' || G.mode === 'tournament') updateBots(dt);
+
+  var standingOn = null;
+  if (p.onGround && p.standingOn) standingOn = p.standingOn;
+  for (var i=0;i<G.platforms.length;i++){
+    var pl = G.platforms[i];
+    if (pl.type !== 'fragile') continue;
+    if (pl.state === 'idle'){
+      if (standingOn === pl){ pl.state = 'cracking'; pl.crackTimer = 0; pl.shake = 0; AudioSys.crack(); }
+    } else if (pl.state === 'cracking'){
+      pl.crackTimer += dt;
+      pl.shake = Math.sin(pl.crackTimer*40) * Math.min(3, pl.crackTimer*3);
+      if (pl.crackTimer >= pl.crackDelay){
+        pl.state = 'falling'; pl.fallVy = 0;
+        spawnParticles(pl.x + pl.w/2, pl.y + pl.h/2, '#c98a5a', 12);
+        if (standingOn === pl) p.onGround = false;
+      }
+    } else if (pl.state === 'falling'){
+      pl.fallVy += 1600*dt; pl.y += pl.fallVy*dt; pl.shake = 0;
+      if (pl.y > G.cameraY + G.H + 200) pl.state = 'gone';
+    }
+  }
+  if (G.coinCombo > 0){ G.comboResetTimer -= dt; if (G.comboResetTimer <= 0) G.coinCombo = 0; }
+
+  if (save.upgrades.magnet){
+    var pcx = p.x + p.w/2, pcy = p.y + p.h/2;
+    for (var ci=0;ci<G.coins.length;ci++){
+      var c = G.coins[ci];
+      if (c.taken) continue;
+      var ddx = pcx - c.x, ddy = pcy - c.y;
+      var dist = Math.sqrt(ddx*ddx + ddy*ddy);
+      if (dist < MAGNET_RADIUS && dist > 1){
+        var pull = 260*dt*(1 - dist/MAGNET_RADIUS);
+        c.x += (ddx/dist) * pull * 60 * dt * 10;
+        c.y += (ddy/dist) * pull * 60 * dt * 10;
+      }
+    }
+  }
+
+  for (var ci2=0;ci2<G.coins.length;ci2++){
+    var c2 = G.coins[ci2];
+    if (c2.taken) continue;
+    var cx = p.x + p.w/2, cy = p.y + p.h/2;
+    var ddx2 = cx - c2.x, ddy2 = cy - c2.y;
+    if (ddx2*ddx2 + ddy2*ddy2 < (c2.r+22)*(c2.r+22)){
+      c2.taken = true;
+      var amount = save.upgrades.coinBoost ? 2 : 1;
+      G.coinsThisRun += amount; G.xpThisRun += 2;
+      save.stats.totalCoinsAllTime += amount;
+      AudioSys.coin(G.coinCombo);
+      G.coinCombo++; G.comboResetTimer = 0.9;
+      spawnParticles(c2.x, c2.y, '#ffd93b', 10);
+      addPopup(c2.x-10, c2.y - G.cameraY - 20, '+' + amount, '#ffd93b');
+      updateHud();
+      updateMissionProgress('coinsRun', G.coinsThisRun, false);
+      updateMissionProgress('coinsTotal', save.stats.totalCoinsAllTime, false);
+    }
+  }
+
+  var highest = -Math.min.apply(null, G.platforms.filter(function(pl){return pl.state!=='gone';}).map(function(pl){return pl.y;}));
+  G.score = Math.max(G.score, Math.floor((highest + (G.H-80))/10));
+  if (G.mode === 'normal' && !G.recordHintShown && save.bestScore > 0 && G.score > save.bestScore*0.7 && G.score < save.bestScore){
+    showRecordHint('🏆 До рекорда: ' + (save.bestScore - G.score) + ' м!');
+    G.recordHintShown = true;
+  }
+  updateHud();
+  updateMissionProgress('height', G.score, false);
+  if (G.mode === 'race' || G.mode === 'tournament') updateRaceHud();
+
+  var targetCamY = p.y - G.H*0.45;
+  G.cameraY += (targetCamY - G.cameraY) * Math.min(1, dt*8);
+  generateUpTo(G.cameraY - G.H);
+  var cutoff = G.cameraY + G.H + 300;
+  G.platforms = G.platforms.filter(function(pl){return pl.y < cutoff && pl.state !== 'gone';});
+  G.coins = G.coins.filter(function(c){return c.y < cutoff && !c.taken;});
+  if (G.shakeAmount > 0) G.shakeAmount = Math.max(0, G.shakeAmount - dt*30);
+
+  if (p.y > G.cameraY + G.H + 120){
+    if (G.mode === 'race' || G.mode === 'tournament'){
+      var vis = G.platforms.filter(function(pl){return pl.state==='idle' && pl.y > G.cameraY + 40 && pl.y < G.cameraY + G.H - 40;});
+      if (!vis.length) vis = G.platforms.filter(function(pl){return pl.state==='idle' && pl.y < G.cameraY + G.H;});
+      if (vis.length){
+        var targetY = G.cameraY + G.H * 0.6;
+        vis.sort(function(a,b){ return Math.abs(a.y - targetY) - Math.abs(b.y - targetY); });
+        var vp = vis[0];
+        p.x = vp.x + vp.w/2 - p.w/2;
+        p.y = vp.y - p.h - 10;
+        p.vy = 0; p.vx = 0;
+        p.onGround = false; p.jumpsUsed = 0;
+        p.invuln = 0.6;
+        toast('💨 Ты упал! Возврат на платформу');
+      }
+    } else if (G.mode === 'normal' || G.mode === 'timer'){
+      handleFall();
+    }
+  }
+
+  for (var pi=0;pi<G.particles.length;pi++){
+    var pt = G.particles[pi];
+    pt.vy += 900*dt; pt.x += pt.vx*dt; pt.y += pt.vy*dt; pt.life -= dt;
+  }
+  G.particles = G.particles.filter(function(pt){return pt.life > 0;});
+}
+
+function handleFall(){
+  if (G.mode === 'timer'){
+    endTimerMode();
+    return;
+  }
+  if (save.upgrades.shield && !G.shieldUsed){
+    G.shieldUsed = true; AudioSys.shield();
+    spawnParticles(G.player.x+G.player.w/2, G.player.y+G.player.h/2, '#a86bff', 20);
+    G.player.y = G.cameraY + G.H*0.4;
+    G.player.vy = -PHYSICS.baseJump*0.7;
+    G.player.onGround = false; G.jumpsUsed = 0;
+    if (save.shake) G.shakeAmount = 12;
+    toast('🛡️ Щит спас от падения!');
+    return;
+  }
+  if (G.livesLeft > 1){
+    G.livesLeft--; AudioSys.shield();
+    spawnParticles(G.player.x+G.player.w/2, G.player.y+G.player.h/2, '#ff5c5c', 20);
+    var coinsSoFar = G.coinsThisRun, xpSoFar = G.xpThisRun;
+    resetWorld();
+    G.coinsThisRun = coinsSoFar; G.xpThisRun = xpSoFar;
+    updateHud(); updateHudChips();
+    toast('❤️ Доп. жизнь использована!');
+    return;
+  }
+  showDeathScreen();
+}
+
+function showDeathScreen(){
+  G.running = false;
+  cancelAnimationFrame(G.animationId);
+  save.coins += G.coinsThisRun;
+  var isNewRecord = G.score > save.bestScore;
+  if (isNewRecord){ save.bestScore = G.score; addRating(Math.floor(G.score / 5)); }
+  save.stats.totalRuns++;
+  addXp(G.xpThisRun + Math.floor(G.score/10));
+  updateMissionProgress('runs', 1, true);
+  persist(); AudioSys.fall();
+  if (isNewRecord) flashScreen();
+  if (save.shake) G.shakeAmount = 18;
+  var left = isNewRecord ? 0 : save.bestScore - G.score;
+  $('deathTitle').textContent = isNewRecord ? '🏆 Новый рекорд!' : '💀 Ты упал!';
+  $('deathInfo').innerHTML = 'Собрано: <b style="color:#ffd93b">🪙 ' + G.coinsThisRun + '</b><br>Высота: <b style="color:#9fc3ff">' + G.score + ' м</b>' + (isNewRecord ? ' <b style="color:#4cd964">(рекорд!)</b>' : '<br>До рекорда: <b style="color:#ffd93b">' + left + ' м</b>') + '<br>XP: <b style="color:#a86bff">+' + (G.xpThisRun + Math.floor(G.score/10)) + '</b>';
+  showScreen('death');
+  G.deathTimer = 2.0;
+  $('autostartHint').textContent = 'Автостарт через 2…';
+  updateMenuBadges();
+  checkAchievements();
+}
+
+function updateDeathTimer(dt){
+  if (G.deathTimer > 0){
+    G.deathTimer -= dt;
+    var n = Math.ceil(G.deathTimer);
+    if (n > 0) $('autostartHint').textContent = 'Автостарт через ' + n + '…';
+    if (G.deathTimer <= 0){
+      G.deathTimer = 0;
+      startGame('normal');
+    }
+  }
+}
+
+function endModeInstant(){
+  G.running = false;
+  cancelAnimationFrame(G.animationId);
+  save.coins += G.coinsThisRun;
+  save.stats.totalRuns++;
+  addXp(G.xpThisRun + Math.floor(G.score/10));
+  updateMissionProgress('runs', 1, true);
+  addRating(2);
+  persist();
+  $('deathTitle').textContent = '💀 Конец!';
+  $('deathInfo').innerHTML = 'Собрано: <b style="color:#ffd93b">🪙 ' + G.coinsThisRun + '</b><br>Высота: <b style="color:#9fc3ff">' + G.score + ' м</b>';
+  showScreen('death');
+  G.deathTimer = 0;
+  $('autostartHint').textContent = '';
+  checkAchievements();
+}
+
+function endTimerMode(){
+  G.running = false;
+  cancelAnimationFrame(G.animationId);
+  $('raceTimer').classList.add('hidden');
+  save.coins += G.coinsThisRun;
+  save.stats.totalRuns++;
+  var bonus = Math.floor(G.coinsThisRun * 0.3);
+  save.coins += bonus;
+  addXp(G.xpThisRun + 30);
+  updateMissionProgress('runs', 1, true);
+  addRating(Math.floor(G.score/10) + 5);
+  persist(); AudioSys.reward();
+  $('deathTitle').textContent = '⏱️ Время вышло!';
+  $('deathInfo').innerHTML = 'Собрано: <b style="color:#ffd93b">🪙 ' + G.coinsThisRun + '</b><br>Высота: <b style="color:#9fc3ff">' + G.score + ' м</b><br>Бонус за монеты: <b style="color:#ffd93b">+🪙 ' + bonus + '</b>';
+  showScreen('death');
+  G.deathTimer = 0;
+  $('autostartHint').textContent = '';
+  checkAchievements();
+}
+
+function spawnParticles(x,y,color,n){
+  if (save.quality !== 'high') return;
+  for (var i=0;i<n;i++){
+    var a = Math.random()*Math.PI*2;
+    var sp = 120 + Math.random()*220;
+    G.particles.push({x:x,y:y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-100,life:0.5+Math.random()*0.4,maxLife:0.9,color:color,size:3+Math.random()*3});
+  }
+}
+function jump(){
+  var p = G.player;
+  if (!p || !G.running || G.paused || G.raceCountdownActive || G.raceEnded) return;
+  if (p.invuln > 0) return;
+  if (p.onGround){
+    var jv = PHYSICS.baseJump * (save.upgrades.highJump ? PHYSICS.highJumpMul : 1);
+    p.vy = -jv; p.onGround = false; G.jumpsUsed = 1;
+    save.stats.totalJumps++; updateMissionProgress('jumps', 1, true); persist();
+    AudioSys.jump();
+    if (save.quality === 'high') spawnParticles(p.x+p.w/2, p.y+p.h, '#9fc3ff', 6);
+  } else if (save.upgrades.doubleJump && G.jumpsUsed < G.maxJumps){
+    var jv2 = PHYSICS.baseJump * (save.upgrades.highJump ? PHYSICS.highJumpMul : 1) * PHYSICS.doubleJumpMul;
+    p.vy = -jv2; G.jumpsUsed++;
+    save.stats.totalJumps++; updateMissionProgress('jumps', 1, true); persist();
+    AudioSys.doubleJump();
+    if (save.quality === 'high') spawnParticles(p.x+p.w/2, p.y+p.h, '#a86bff', 8);
+  }
+}
+
+function getSkin(){ return SKINS.find(function(s){return s.id===save.selectedSkin;}) || SKINS[0]; }
+function drawBackground(){
+  var b = currentBiome();
+  var grad = ctx.createLinearGradient(0,0,0,G.H);
+  if (save.quality === 'high'){ grad.addColorStop(0,b.bg[0]); grad.addColorStop(0.5,b.bg[1]); grad.addColorStop(1,b.bg[2]); }
+  else { grad.addColorStop(0,b.bg[1]); grad.addColorStop(1,b.bg[2]); }
+  ctx.fillStyle = grad; ctx.fillRect(0,0,G.W,G.H);
+  if (save.quality === 'high'){
+    var starScroll = (-G.cameraY*0.12) % 400;
+    ctx.fillStyle = b.star;
+    for (var i=0;i<60;i++){
+      var sx = (i*137.5) % G.W;
+      var sy = ((i*91.7) % (G.H+400) + starScroll + 400) % (G.H+400) - 200;
+      ctx.beginPath(); ctx.arc(sx,sy,(i%3)*0.6+0.6,0,Math.PI*2); ctx.fill();
+    }
+  }
+}
+function drawPlatforms(){
+  var b = currentBiome();
+  for (var i=0;i<G.platforms.length;i++){
+    var pl = G.platforms[i];
+    if (pl.state === 'gone') continue;
+    var sy = pl.y - G.cameraY;
+    if (sy < -60 || sy > G.H+60) continue;
+    var shakeX = pl.state === 'cracking' ? pl.shake : 0;
+    var px = pl.x + shakeX;
+    if (pl.type === 'fragile'){
+      if (pl.state === 'cracking'){ var prog = Math.min(1, pl.crackTimer/pl.crackDelay); ctx.fillStyle = mixColor(b.fragile, '#e63946', prog*0.7); }
+      else ctx.fillStyle = b.fragile;
+    } else {
+      if (save.quality === 'high'){ var g = ctx.createLinearGradient(0,sy,0,sy+pl.h); g.addColorStop(0,b.platform[0]); g.addColorStop(1,b.platform[1]); ctx.fillStyle = g; }
+      else ctx.fillStyle = b.platform[1];
+    }
+    roundRect(ctx, px, sy, pl.w, pl.h, 6); ctx.fill();
+  }
+}
+function mixColor(c1,c2,t){
+  var n1 = parseInt(c1.slice(1),16), n2 = parseInt(c2.slice(1),16);
+  var r = Math.round(((n1>>16)&255)*(1-t) + ((n2>>16)&255)*t);
+  var g = Math.round(((n1>>8)&255)*(1-t) + ((n2>>8)&255)*t);
+  var b = Math.round((n1&255)*(1-t) + (n2&255)*t);
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
+function drawCoins(){
+  var b = currentBiome();
+  var t = performance.now()/1000;
+  for (var i=0;i<G.coins.length;i++){
+    var c = G.coins[i];
+    if (c.taken) continue;
+    var sy = c.y - G.cameraY;
+    if (sy < -40 || sy > G.H+40) continue;
+    var bob = Math.sin(t*3 + c.bob + c.phase)*4;
+    var y = sy + bob;
+    var g = ctx.createRadialGradient(c.x-3, y-3, 1, c.x, y, c.r);
+    g.addColorStop(0, b.coin[0]); g.addColorStop(0.6, b.coin[1]); g.addColorStop(1, b.coin[2]);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(c.x, y, c.r, 0, Math.PI*2); ctx.fill();
+  }
+}
+function drawCharacter(entity, opts){
+  var p = entity;
+  var sy = p.y - G.cameraY;
+  if (sy < -80 || sy > G.H+80) return;
+  if (opts.isPlayer && save.upgrades.magnet){
+    var auraG = ctx.createRadialGradient(p.x+p.w/2, sy+p.h/2, 10, p.x+p.w/2, sy+p.h/2, MAGNET_RADIUS);
+    auraG.addColorStop(0, 'rgba(168,107,255,.16)');
+    auraG.addColorStop(1, 'rgba(168,107,255,0)');
+    ctx.fillStyle = auraG;
+    ctx.beginPath(); ctx.arc(p.x+p.w/2, sy+p.h/2, MAGNET_RADIUS, 0, Math.PI*2); ctx.fill();
+  }
+  var alpha = 1;
+  if (opts.isPlayer && p.invuln > 0){
+    alpha = 0.4 + 0.3 * Math.sin(performance.now()/80);
+  }
+  if (opts.effect === 'ghost') alpha *= 0.6;
+  var squash = p.squash || 0;
+  var scaleY = 1 + squash*0.15, scaleX = 1 - squash*0.1;
+  var bob = (p.onGround && Math.abs(p.vx) > 20) ? Math.sin((p.animTime||0)*20)*2 : 0;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(p.x+p.w/2, sy+p.h/2+bob);
+  ctx.scale(scaleX, scaleY);
+  var g = ctx.createLinearGradient(0,-p.h/2,0,p.h/2);
+  if (opts.effect === 'rainbow'){
+    var t2 = performance.now()/1000, hue = (t2*60) % 360;
+    g.addColorStop(0, 'hsl(' + hue + ',90%,75%)');
+    g.addColorStop(1, 'hsl(' + ((hue+60)%360) + ',90%,55%)');
+  } else if (opts.isPlayer && save.upgrades.shield && !G.shieldUsed){
+    g.addColorStop(0, '#c4a4ff'); g.addColorStop(1, '#7c3aed');
+  } else {
+    g.addColorStop(0, opts.top); g.addColorStop(1, opts.bottom);
+  }
+  if (opts.effect === 'glow' && save.quality === 'high'){
+    ctx.shadowColor = opts.top; ctx.shadowBlur = 15;
+  }
+  ctx.fillStyle = g;
+  roundRect(ctx, -p.w/2, -p.h/2, p.w, p.h, 9); ctx.fill();
+  ctx.shadowBlur = 0;
+  if (opts.effect === 'trail' && save.quality === 'high'){
+    ctx.fillStyle = opts.top;
+    ctx.globalAlpha = alpha * 0.3;
+    ctx.beginPath(); ctx.arc(0, -p.h/2 + 10, 8, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = alpha;
+  }
+  ctx.font = '16px Segoe UI Emoji'; ctx.textAlign = 'center';
+  ctx.fillText(opts.icon, 0, 0);
+  var eyeOffset = (p.face||1)*4;
+  var eyeY = -p.h/2 + p.h*0.3;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-p.w*0.14+eyeOffset, eyeY, 4.5, 0, Math.PI*2); ctx.arc(p.w*0.14+eyeOffset, eyeY, 4.5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#0b0f1a';
+  ctx.beginPath(); ctx.arc(-p.w*0.14+eyeOffset+(p.face||1)*1.5, eyeY, 2, 0, Math.PI*2); ctx.arc(p.w*0.14+eyeOffset+(p.face||1)*1.5, eyeY, 2, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+  if (opts.nameLabel){
+    ctx.fillStyle = opts.nameColor || '#fff';
+    ctx.font = 'bold 11px Segoe UI, Arial'; ctx.textAlign = 'center';
+    ctx.fillText(opts.nameLabel, p.x+p.w/2, sy-6);
+  }
+}
+function drawBots(){
+  for (var i=0;i<G.bots.length;i++){
+    var bot = G.bots[i];
+    drawCharacter(bot, {top:bot.top, bottom:bot.bottom, icon:'🤖', nameLabel:bot.name, nameColor:bot.color, isPlayer:false, effect:null});
+  }
+}
+function drawPlayer(){
+  var p = G.player; if (!p) return;
+  var skin = getSkin();
+  drawCharacter(p, {top:skin.top, bottom:skin.bottom, icon:skin.icon, isPlayer:true, effect:skin.effect});
+}
+function drawParticles(){
+  if (save.quality !== 'high') return;
+  for (var i=0;i<G.particles.length;i++){
+    var pt = G.particles[i];
+    var a = Math.max(0, pt.life/pt.maxLife);
+    ctx.globalAlpha = a; ctx.fillStyle = pt.color;
+    ctx.beginPath(); ctx.arc(pt.x, pt.y - G.cameraY, pt.size*a, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+function drawBest(){
+  if (G.mode !== 'normal') return;
+  if (!save.showBest || save.bestScore <= 0) return;
+  if (G.score < save.bestScore){
+    var bestY = (G.H-80) - save.bestScore*10 - G.cameraY;
+    if (bestY > -50 && bestY < G.H+50){
+      ctx.strokeStyle = 'rgba(255,217,59,.35)';
+      ctx.setLineDash([6,8]); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(0,bestY); ctx.lineTo(G.W,bestY); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(255,217,59,.6)';
+      ctx.font = 'bold 11px Segoe UI, Arial'; ctx.textAlign = 'right';
+      ctx.fillText('🏆 рекорд ' + save.bestScore, G.W-8, bestY-6);
+    }
+  }
+}
+function roundRect(c,x,y,w,h,r){
+  c.beginPath(); c.moveTo(x+r,y);
+  c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r);
+  c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath();
+}
+function render(){
+  drawBackground(); drawPlatforms(); drawBest(); drawCoins();
+  drawBots(); drawPlayer(); drawParticles();
+}
+function loop(now){
+  var dt = Math.min(0.05, (now-G.lastTime)/1000 || 0);
+  G.lastTime = now;
+  if (G.running){
+    step(dt);
+    if (save.shake && G.shakeAmount > 0.5){
+      var ox = (Math.random()-0.5)*G.shakeAmount, oy = (Math.random()-0.5)*G.shakeAmount;
+      ctx.save(); ctx.translate(ox,oy); render(); ctx.restore();
+    } else render();
+  } else if (G.deathTimer > 0){
+    updateDeathTimer(dt);
+  }
+  G.animationId = requestAnimationFrame(loop);
+}
+
+function endRace(){
+  G.running = false; cancelAnimationFrame(G.animationId);
+  G.raceEnded = true;
+  $('raceTimer').classList.add('hidden');
+  $('raceHud').classList.add('hidden');
+  AudioSys.raceEnd();
+  var participants = [{name:save.playerName||'Ты', score:G.score, you:true, color:'#ffd93b'}];
+  for (var i=0;i<G.bots.length;i++) participants.push({name:G.bots[i].name, score:G.bots[i].score, you:false, color:G.bots[i].color});
+  participants.sort(function(a,b){return b.score-a.score;});
+  var playerPlace = 0;
+  for (var j=0;j<participants.length;j++) if (participants[j].you) playerPlace = j+1;
+  var rewards = {1:300, 2:180, 3:100, 4:50};
+  var reward = rewards[playerPlace] || 50;
+  var eloChange = 0;
+  if (playerPlace === 1) eloChange = 15;
+  else if (playerPlace === 2) eloChange = 5;
+  else if (playerPlace === 3) eloChange = -3;
+  else eloChange = -8;
+  save.raceStats.rating = Math.max(0, (save.raceStats.rating||0) + eloChange);
+  if (save.raceStats.rating > (save.raceStats.bestRating||0)) save.raceStats.bestRating = save.raceStats.rating;
+  var rankPoints = playerPlace === 1 ? 50 : playerPlace === 2 ? 30 : playerPlace === 3 ? 15 : 5;
+  addRating(rankPoints);
+  save.coins += reward;
+  save.raceStats.racesPlayed++;
+  if (playerPlace === 1) save.raceStats.wins++;
+  if (G.score > save.raceStats.bestRaceScore) save.raceStats.bestRaceScore = G.score;
+  var xpGain = G.xpThisRun + Math.floor(G.score/5) + (playerPlace===1 ? 50 : 20);
+  addXp(xpGain);
+  persist(); updateMenuBadges();
+
+  $('rrPlaceIcon').textContent = playerPlace===1?'🥇':playerPlace===2?'🥈':playerPlace===3?'🥉':'🏅';
+  $('rrTitle').textContent = playerPlace===1?'🏆 Победа!':playerPlace===2?'Серебро!':playerPlace===3?'Бронза!':'4 место';
+  $('rrTitle').style.color = playerPlace===1?'#ffd93b':playerPlace===2?'#c0c8d8':playerPlace===3?'#cd7f32':'#9fc3ff';
+  var listEl = $('rrList'); listEl.innerHTML = '';
+  participants.forEach(function(p, idx){
+    var row = document.createElement('div');
+    row.className = 'race-row' + (p.you?' you':'');
+    var medal = idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':(idx+1);
+    row.innerHTML = '<div class="rr-medal">' + medal + '</div><div class="rr-name">' + (p.you?'👤 ':'') + p.name + '</div><div class="rr-score">' + p.score + ' м</div>';
+    listEl.appendChild(row);
+  });
+  $('rrReward').textContent = '+' + reward + ' 🪙 +' + xpGain + ' XP';
+  $('rrElo').textContent = (eloChange >= 0 ? '📈 +' : '📉 ') + eloChange + ' гонщик-рейтинга, +' + rankPoints + ' общего рейтинга';
+  $('rrElo').style.color = eloChange >= 0 ? '#4cd964' : '#ff5c5c';
+  $('raceResults').classList.remove('hidden');
+  if (playerPlace === 1) AudioSys.raceWin();
+  else AudioSys.reward();
+  if (G.mode === 'tournament'){
+    save.tournament.races++;
+    save.tournament.totalScore += G.score;
+    if (save.tournament.races >= 3){
+      finishTournament();
+    }
+  }
+  checkAchievements();
+}
+
+function finishTournament(){
+  var total = save.tournament.totalScore;
+  var reward = 0;
+  if (total >= 900) reward = 1500;
+  else if (total >= 600) reward = 900;
+  else if (total >= 400) reward = 500;
+  else if (total >= 200) reward = 250;
+  else reward = 100;
+  save.coins += reward;
+  save.tournamentWins = (save.tournamentWins||0) + 1;
+  addXp(100);
+  addRating(100);
+  save.tournament = {active:false, races:0, totalScore:0, bestScore:0};
+  persist();
+  setTimeout(function(){
+    toast('🎯 Турнир завершён! Сумма: ' + total + ' м. Награда: +🪙 ' + reward, 5000);
+    $('raceResults').classList.add('hidden');
+    showScreen('menu');
+    checkAchievements();
+  }, 1500);
+}
+
+// ===== МОБИЛЬНОЕ УПРАВЛЕНИЕ =====
+var touchControlsEl = $('touchControls');
+function isTouchDevice(){
+  return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+}
+function updateTouchVisibility(){
+  var show = isTouchDevice() || window.innerWidth <= 820;
+  touchControlsEl.classList.toggle('active', show);
+}
+window.addEventListener('resize', updateTouchVisibility);
+updateTouchVisibility();
+
+function bindTouchButton(el, onDown, onUp){
+  if (!el) return;
+  function down(e){
+    e.preventDefault();
+    e.stopPropagation();
+    el.classList.add('pressed');
+    onDown();
+  }
+  function up(e){
+    if (e) e.preventDefault();
+    el.classList.remove('pressed');
+    if (onUp) onUp();
+  }
+  el.addEventListener('touchstart', down, {passive:false});
+  el.addEventListener('touchend', up, {passive:false});
+  el.addEventListener('touchcancel', up, {passive:false});
+  el.addEventListener('mousedown', down);
+  el.addEventListener('mouseup', up);
+  el.addEventListener('mouseleave', up);
+  el.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+}
+
+bindTouchButton($('touchLeft'),
+  function(){ G.keys.left = true; },
+  function(){ G.keys.left = false; }
+);
+bindTouchButton($('touchRight'),
+  function(){ G.keys.right = true; },
+  function(){ G.keys.right = false; }
+);
+bindTouchButton($('touchJump'),
+  function(){ jump(); },
+  null
+);
+bindTouchButton($('touchPause'),
+  function(){ if (G.running) $('pauseBtn').click(); },
+  null
+);
+
+touchControlsEl.addEventListener('touchmove', function(e){
+  if (e.target.classList.contains('touch-btn')) e.preventDefault();
+}, {passive:false});
+
+$('btnPlay').onclick = function(){ AudioSys.unlock(); if (!save.tutorialDone){ showTutorial(); return; } showScreen(null); startGame('normal'); };
+$('btnRace').onclick = function(){ AudioSys.unlock(); if (!save.tutorialDone){ showTutorial(); return; } showScreen(null); startGame('race'); };
+$('btnTimer').onclick = function(){ AudioSys.unlock(); if (!save.tutorialDone){ showTutorial(); return; } showScreen(null); startGame('timer'); };
+$('btnTournament').onclick = function(){ showScreen('tournament'); };
+$('btnTournamentStart').onclick = function(){
+  if (!save.tournament.active){
+    save.tournament = {active:true, races:0, totalScore:0, bestScore:0};
+    persist();
+  }
+  showScreen(null);
+  startGame('tournament');
+};
+$('tournamentBack').onclick = function(){ showScreen('menu'); };
+$('btnAchievements').onclick = function(){ showScreen('achievements'); };
+$('achievementsBack').onclick = function(){ showScreen('menu'); };
+$('btnWheel').onclick = function(){ showScreen('wheel'); };
+$('btnDaily').onclick = function(){ showScreen('daily'); };
+$('btnMissions').onclick = function(){ showScreen('missions'); };
+$('btnBiomes').onclick = function(){ showScreen('biomes'); };
+$('btnCases').onclick = function(){ showScreen('cases'); };
+$('btnShop').onclick = function(){ showScreen('shop'); };
+$('btnLeaderboard').onclick = function(){ showScreen('leaderboard'); };
+$('btnSettings').onclick = function(){ showScreen('settings'); };
+$('btnSeasons').onclick = function(){ showScreen('seasons'); };
+$('seasonBanner').onclick = function(){ showScreen('seasons'); };
+$('wheelBack').onclick = function(){ showScreen('menu'); };
+$('leaderboardBack').onclick = function(){ showScreen('menu'); };
+$('biomesBack').onclick = function(){ showScreen('menu'); };
+$('dailyBack').onclick = function(){ showScreen('menu'); };
+$('missionsBack').onclick = function(){ showScreen('menu'); };
+$('casesBack').onclick = function(){ showScreen('menu'); };
+$('btnMySkins').onclick = function(){ showScreen('skins'); };
+$('skinsBack').onclick = function(){ showScreen('cases'); };
+$('shopBack').onclick = function(){ showScreen('menu'); };
+$('settingsBack').onclick = function(){ showScreen('menu'); };
+$('seasonsBack').onclick = function(){ showScreen('menu'); };
+$('btnClaimDaily').onclick = claimDaily;
+$('btnClaimSeason').onclick = claimSeason;
+$('wheelCenter').onclick = spinWheel;
+$('btnRefreshMissions').onclick = function(){ generateMissions(); AudioSys.purchase(); toast('🔄 Миссии обновлены!'); renderMissions(); updateMenuBadges(); };
+
+$('btnSaveNick').onclick = function(){
+  var input = $('nickInput');
+  if (!input) return;
+  var val = (input.value || '').trim();
+  if (val.length < 2){ AudioSys.denied(); toast('❌ Ник должен быть от 2 символов'); return; }
+  if (val.length > 16) val = val.slice(0,16);
+  save.playerName = val;
+  persist();
+  AudioSys.purchase();
+  toast('✅ Ник сохранён: ' + val);
+};
+
+$('btnDeathRestart').onclick = function(){
+  $('deathScreen').classList.add('hidden');
+  G.deathTimer = 0;
+  startGame('normal');
+};
+$('btnDeathMenu').onclick = function(){
+  $('deathScreen').classList.add('hidden');
+  G.deathTimer = 0;
+  showScreen('menu');
+};
+
+$('tutBtn').onclick = function(){
+  if (tutStep < TUT_STEPS.length-1){ tutStep++; renderTutStep(); }
+  else { save.tutorialDone = true; persist(); $('tutorialOverlay').classList.add('hidden'); }
+};
+$('rrAgain').onclick = function(){
+  $('raceResults').classList.add('hidden');
+  if (G.mode === 'tournament'){
+    if (save.tournament.races < 3){ showScreen(null); startGame('tournament'); }
+    else { showScreen('menu'); }
+  } else {
+    showScreen(null); startGame('race');
+  }
+};
+$('rrMenu').onclick = function(){ $('raceResults').classList.add('hidden'); showScreen('menu'); };
+$('pauseBtn').onclick = function(){
+  if (!G.running) return;
+  G.paused = true;
+  $('pauseTitle').textContent = '⏸ Пауза';
+  $('pauseInfo').innerHTML = 'Собрано: <b style="color:#ffd93b">🪙 ' + G.coinsThisRun + '</b> · Высота: <b style="color:#9fc3ff">' + G.score + ' м</b>';
+  $('btnResume').textContent = '▶ Продолжить';
+  $('btnResume').onclick = function(){ G.paused = false; G.lastTime = performance.now(); showScreen(null); };
+  $('btnToMenu').onclick = function(){
+    if (G.mode === 'race' || G.mode === 'tournament'){ endRace(); return; }
+    if (G.mode === 'timer'){ endModeInstant(); return; }
+    save.coins += G.coinsThisRun;
+    if (G.score > save.bestScore){ save.bestScore = G.score; addRating(Math.floor(G.score / 5)); }
+    save.stats.totalRuns++;
+    addXp(G.xpThisRun + Math.floor(G.score/10));
+    updateMissionProgress('runs', 1, true);
+    persist();
+    G.running = false; G.paused = false;
+    cancelAnimationFrame(G.animationId);
+    showScreen('menu');
+    updateMenuBadges();
+    checkAchievements();
+  };
+  showScreen('pause');
+};
+
+Array.prototype.forEach.call(document.querySelectorAll('#qualityToggle button'), function(b){ b.onclick = function(){ save.quality = b.dataset.q; persist(); refreshToggles(); toast(b.dataset.q==='high'?'✨ Хорошее':'⚡ Низкое'); }; });
+Array.prototype.forEach.call(document.querySelectorAll('#soundToggle button'), function(b){ b.onclick = function(){ var on = b.dataset.s==='on'; AudioSys.setEnabled(on); refreshToggles(); if (on) AudioSys.coin(0); toast(on?'🔊 Вкл':'🔇 Выкл'); }; });
+Array.prototype.forEach.call(document.querySelectorAll('#musicToggle button'), function(b){ b.onclick = function(){ var on = b.dataset.m==='on'; AudioSys.setMusic(on); refreshToggles(); toast(on?'🎵 Музыка вкл':'🔇 Музыка выкл'); }; });
+Array.prototype.forEach.call(document.querySelectorAll('#shakeToggle button'), function(b){ b.onclick = function(){ save.shake = b.dataset.sh==='on'; persist(); refreshToggles(); }; });
+Array.prototype.forEach.call(document.querySelectorAll('#hintToggle button'), function(b){ b.onclick = function(){ save.hints = b.dataset.h==='on'; persist(); refreshToggles(); }; });
+Array.prototype.forEach.call(document.querySelectorAll('#bestToggle button'), function(b){ b.onclick = function(){ save.showBest = b.dataset.b==='on'; persist(); refreshToggles(); }; });
+
+window.addEventListener('keydown', function(e){
+  if (!G.running) return;
+  if (e.key==='ArrowLeft'||e.key==='a'||e.key==='A'||e.key==='ф'||e.key==='Ф'){ G.keys.left = true; e.preventDefault(); }
+  else if (e.key==='ArrowRight'||e.key==='d'||e.key==='D'||e.key==='в'||e.key==='В'){ G.keys.right = true; e.preventDefault(); }
+  else if (e.key==='ArrowUp'||e.key==='w'||e.key==='W'||e.key==='ц'||e.key==='Ц'||e.key===' '){ jump(); e.preventDefault(); }
+  else if (e.key==='p'||e.key==='P'||e.key==='з'||e.key==='З'){ $('pauseBtn').click(); }
+});
+window.addEventListener('keyup', function(e){
+  if (e.key==='ArrowLeft'||e.key==='a'||e.key==='A'||e.key==='ф'||e.key==='Ф') G.keys.left = false;
+  else if (e.key==='ArrowRight'||e.key==='d'||e.key==='D'||e.key==='в'||e.key==='В') G.keys.right = false;
+});
+window.addEventListener('pointerdown', function(){ AudioSys.unlock(); }, {once:true});
+
+$('deathScreen').addEventListener('click', function(e){
+  if (e.target.tagName === 'BUTTON') return;
+  $('deathScreen').classList.add('hidden');
+  G.deathTimer = 0;
+  startGame('normal');
+});
+
+checkMissionsReset();
+generateLeaderboard();
+resize();
+refreshMenuCoins();
+refreshToggles();
+renderPlayerLevel();
+renderSeasonBanner();
+renderCollectionProgress();
+renderRank();
+renderPlayerRank();
+showScreen('menu');
+updateMenuBadges();
+render();
+checkAchievements();
+setInterval(function(){
+  if (!screens.menu.classList.contains('hidden')){ updateMenuBadges(); renderSeasonBanner(); renderRank(); renderPlayerRank(); }
+}, 60000);
+
+})();
+</script>
+</body>
+</html>
